@@ -1,0 +1,2 @@
+PersonId,Id,NoteType,Caption,IsAlert,IsPrivateNote,Text,DateTime,CreatedByPersonId
+905,1006111260,Status History,,FALSE,FALSE,Business,1/1/2010 0:00,
