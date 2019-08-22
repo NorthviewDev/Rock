@@ -1,4 +1,4 @@
-﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="Logout.ascx.cs" Inherits="RockWeb.Blocks.Security.Logout" %>
+<%@ Control Language="C#" AutoEventWireup="true" CodeFile="Logout.ascx.cs" Inherits="RockWeb.Blocks.Security.Logout" %>
 
 
 

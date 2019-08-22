@@ -1,4 +1,4 @@
-﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="DiscResult.ascx.cs" Inherits="Rockweb.Blocks.Crm.DiscResult" ViewStateMode="Enabled" EnableViewState="true" %>
+<%@ Control Language="C#" AutoEventWireup="true" CodeFile="DiscResult.ascx.cs" Inherits="Rockweb.Blocks.Crm.DiscResult" ViewStateMode="Enabled" EnableViewState="true" %>
 
 <asp:UpdatePanel ID="upnlContent" runat="server">
     <ContentTemplate>

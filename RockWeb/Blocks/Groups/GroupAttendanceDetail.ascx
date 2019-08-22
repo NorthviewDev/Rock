@@ -35,12 +35,10 @@
                             <Rock:RockDropDownList ID="ddlLocation" runat="server" Label="Location" DataValueField="Key" DataTextField="Value"
                                 AutoPostBack="true" OnSelectedIndexChanged="ddlLocation_SelectedIndexChanged" />
                         </div>
-						
                         <div class="col-sm-3">
                             <Rock:RockLiteral ID="lSchedule" runat="server" Label="Schedule" />
                             <Rock:RockDropDownList ID="ddlSchedule" runat="server" Label="Schedule" DataValueField="Key" DataTextField="Value" />
                         </div>
-						
                         <div class="col-sm-3">
                             <Rock:RockLiteral ID="lDidAttendCount" runat="server" Label="Attendance Count" />
                         </div>
@@ -57,8 +55,7 @@
 
                             <div class="js-roster">
                                 <h4 class="js-members-label">
-                                    <asp:Literal ID="lMembers" runat="server" /> Present
-									</h4>
+                                    <asp:Literal ID="lMembers" runat="server" /></h4>
                                 <asp:ListView ID="lvMembers" runat="server">
                                     <ItemTemplate>
                                         <asp:HiddenField ID="hfMember" runat="server" Value='<%# Eval("PersonId") %>' />

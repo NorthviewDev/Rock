@@ -1,4 +1,4 @@
-﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="ExternalApplicationList.ascx.cs" Inherits="RockWeb.Blocks.Administration.ExternalApplicationList" %>
+<%@ Control Language="C#" AutoEventWireup="true" CodeFile="ExternalApplicationList.ascx.cs" Inherits="RockWeb.Blocks.Administration.ExternalApplicationList" %>
 
 <asp:UpdatePanel ID="upBinaryFile" runat="server">
     <ContentTemplate>

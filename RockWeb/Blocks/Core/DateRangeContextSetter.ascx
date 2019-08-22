@@ -1,4 +1,4 @@
-﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="DateRangeContextSetter.ascx.cs" Inherits="RockWeb.Blocks.Core.DateRangeContextSetter" %>
+<%@ Control Language="C#" AutoEventWireup="true" CodeFile="DateRangeContextSetter.ascx.cs" Inherits="RockWeb.Blocks.Core.DateRangeContextSetter" %>
 
 <asp:UpdatePanel ID="upnlContent" runat="server">
     <ContentTemplate>

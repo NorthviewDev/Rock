@@ -1,0 +1,263 @@
+6/28/2019 10:16:33 AM,System.Exception,"Unable to load MEF from Rock.Rest, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null",""
+6/28/2019 10:16:33 AM,System.TypeLoadException,"Could not load type 'Rock.Model.PageViewUserAgent' from assembly 'Rock, Version=1.8.8.3, Culture=neutral, PublicKeyToken=null'.",""
+6/29/2019 10:33:22 AM,System.Exception,"Error occurred during application startup","   at RockWeb.Global.Application_Start(Object sender, EventArgs e) in c:\Users\antho_000\Documents\LLC\WebWerks\NorthviewRock\Rock\RockWeb\App_Code\Global.asax.cs:line 293"
+6/29/2019 10:33:22 AM,System.Data.Entity.Core.EntityCommandExecutionException,"An error occurred while executing the command definition. See the inner exception for details.","   at System.Data.Entity.Core.EntityClient.Internal.EntityCommandDefinition.ExecuteStoreCommands(EntityCommand entityCommand, CommandBehavior behavior)
+   at System.Data.Entity.Core.Objects.Internal.ObjectQueryExecutionPlan.Execute[TResultType](ObjectContext context, ObjectParameterCollection parameterValues)
+   at System.Data.Entity.Core.Objects.ObjectQuery`1.<>c__DisplayClass7.<GetResults>b__6()
+   at System.Data.Entity.Core.Objects.ObjectContext.ExecuteInTransaction[T](Func`1 func, IDbExecutionStrategy executionStrategy, Boolean startLocalTransaction, Boolean releaseConnectionOnSuccess)
+   at System.Data.Entity.Core.Objects.ObjectQuery`1.<>c__DisplayClass7.<GetResults>b__5()
+   at System.Data.Entity.SqlServer.DefaultSqlExecutionStrategy.Execute[TResult](Func`1 operation)
+   at System.Data.Entity.Core.Objects.ObjectQuery`1.GetResults(Nullable`1 forMergeOption)
+   at System.Data.Entity.Core.Objects.ObjectQuery`1.<System.Collections.Generic.IEnumerable<T>.GetEnumerator>b__0()
+   at System.Data.Entity.Internal.LazyEnumerator`1.MoveNext()
+   at RockWeb.Global.LoadCacheObjects(RockContext rockContext) in c:\Users\antho_000\Documents\LLC\WebWerks\NorthviewRock\Rock\RockWeb\App_Code\Global.asax.cs:line 766
+   at RockWeb.Global.Application_Start(Object sender, EventArgs e) in c:\Users\antho_000\Documents\LLC\WebWerks\NorthviewRock\Rock\RockWeb\App_Code\Global.asax.cs:line 173"
+6/29/2019 10:33:22 AM,System.Data.SqlClient.SqlException,"Invalid column name 'IsIndexingEnabled'.
+Invalid column name 'IndexResultTemplate'.
+Invalid column name 'IndexDocumentUrl'.
+Invalid column name 'LinkUrlLavaTemplate'.","   at System.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at System.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at System.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj, Boolean callerHasConnectionLock, Boolean asyncClose)
+   at System.Data.SqlClient.TdsParser.TryRun(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, BulkCopySimpleResultSet bulkCopyHandler, TdsParserStateObject stateObj, Boolean& dataReady)
+   at System.Data.SqlClient.SqlDataReader.TryConsumeMetaData()
+   at System.Data.SqlClient.SqlDataReader.get_MetaData()
+   at System.Data.SqlClient.SqlCommand.FinishExecuteReader(SqlDataReader ds, RunBehavior runBehavior, String resetOptionsString, Boolean isInternal, Boolean forDescribeParameterEncryption, Boolean shouldCacheForAlwaysEncrypted)
+   at System.Data.SqlClient.SqlCommand.RunExecuteReaderTds(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, Boolean async, Int32 timeout, Task& task, Boolean asyncWrite, Boolean inRetry, SqlDataReader ds, Boolean describeParameterEncryptionRequest)
+   at System.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, String method, TaskCompletionSource`1 completion, Int32 timeout, Task& task, Boolean& usedCache, Boolean asyncWrite, Boolean inRetry)
+   at System.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, String method)
+   at System.Data.SqlClient.SqlCommand.ExecuteReader(CommandBehavior behavior, String method)
+   at System.Data.SqlClient.SqlCommand.ExecuteDbDataReader(CommandBehavior behavior)
+   at System.Data.Common.DbCommand.ExecuteReader(CommandBehavior behavior)
+   at System.Data.Entity.Infrastructure.Interception.DbCommandDispatcher.<Reader>b__c(DbCommand t, DbCommandInterceptionContext`1 c)
+   at System.Data.Entity.Infrastructure.Interception.InternalDispatcher`1.Dispatch[TTarget,TInterceptionContext,TResult](TTarget target, Func`3 operation, TInterceptionContext interceptionContext, Action`3 executing, Action`3 executed)
+   at System.Data.Entity.Infrastructure.Interception.DbCommandDispatcher.Reader(DbCommand command, DbCommandInterceptionContext interceptionContext)
+   at System.Data.Entity.Internal.InterceptableDbCommand.ExecuteDbDataReader(CommandBehavior behavior)
+   at System.Data.Common.DbCommand.ExecuteReader(CommandBehavior behavior)
+   at System.Data.Entity.Core.EntityClient.Internal.EntityCommandDefinition.ExecuteStoreCommands(EntityCommand entityCommand, CommandBehavior behavior)"
+7/6/2019 12:51:52 PM,System.Exception,"Error occurred during application startup","   at RockWeb.Global.Application_Start(Object sender, EventArgs e) in c:\Users\antho_000\Documents\LLC\WebWerks\NorthviewRock\Rock\RockWeb\App_Code\Global.asax.cs:line 293"
+7/6/2019 12:51:52 PM,System.Data.Entity.Core.EntityCommandExecutionException,"An error occurred while executing the command definition. See the inner exception for details.","   at System.Data.Entity.Core.EntityClient.Internal.EntityCommandDefinition.ExecuteStoreCommands(EntityCommand entityCommand, CommandBehavior behavior)
+   at System.Data.Entity.Core.Objects.Internal.ObjectQueryExecutionPlan.Execute[TResultType](ObjectContext context, ObjectParameterCollection parameterValues)
+   at System.Data.Entity.Core.Objects.ObjectQuery`1.<>c__DisplayClass7.<GetResults>b__6()
+   at System.Data.Entity.Core.Objects.ObjectContext.ExecuteInTransaction[T](Func`1 func, IDbExecutionStrategy executionStrategy, Boolean startLocalTransaction, Boolean releaseConnectionOnSuccess)
+   at System.Data.Entity.Core.Objects.ObjectQuery`1.<>c__DisplayClass7.<GetResults>b__5()
+   at System.Data.Entity.SqlServer.DefaultSqlExecutionStrategy.Execute[TResult](Func`1 operation)
+   at System.Data.Entity.Core.Objects.ObjectQuery`1.GetResults(Nullable`1 forMergeOption)
+   at System.Data.Entity.Core.Objects.ObjectQuery`1.<System.Collections.Generic.IEnumerable<T>.GetEnumerator>b__0()
+   at System.Data.Entity.Internal.LazyEnumerator`1.MoveNext()
+   at RockWeb.Global.LoadCacheObjects(RockContext rockContext) in c:\Users\antho_000\Documents\LLC\WebWerks\NorthviewRock\Rock\RockWeb\App_Code\Global.asax.cs:line 766
+   at RockWeb.Global.Application_Start(Object sender, EventArgs e) in c:\Users\antho_000\Documents\LLC\WebWerks\NorthviewRock\Rock\RockWeb\App_Code\Global.asax.cs:line 173"
+7/6/2019 12:51:52 PM,System.Data.SqlClient.SqlException,"Invalid object name 'dbo.EntityType'.","   at System.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at System.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at System.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj, Boolean callerHasConnectionLock, Boolean asyncClose)
+   at System.Data.SqlClient.TdsParser.TryRun(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, BulkCopySimpleResultSet bulkCopyHandler, TdsParserStateObject stateObj, Boolean& dataReady)
+   at System.Data.SqlClient.SqlDataReader.TryConsumeMetaData()
+   at System.Data.SqlClient.SqlDataReader.get_MetaData()
+   at System.Data.SqlClient.SqlCommand.FinishExecuteReader(SqlDataReader ds, RunBehavior runBehavior, String resetOptionsString, Boolean isInternal, Boolean forDescribeParameterEncryption, Boolean shouldCacheForAlwaysEncrypted)
+   at System.Data.SqlClient.SqlCommand.RunExecuteReaderTds(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, Boolean async, Int32 timeout, Task& task, Boolean asyncWrite, Boolean inRetry, SqlDataReader ds, Boolean describeParameterEncryptionRequest)
+   at System.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, String method, TaskCompletionSource`1 completion, Int32 timeout, Task& task, Boolean& usedCache, Boolean asyncWrite, Boolean inRetry)
+   at System.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, String method)
+   at System.Data.SqlClient.SqlCommand.ExecuteReader(CommandBehavior behavior, String method)
+   at System.Data.SqlClient.SqlCommand.ExecuteDbDataReader(CommandBehavior behavior)
+   at System.Data.Common.DbCommand.ExecuteReader(CommandBehavior behavior)
+   at System.Data.Entity.Infrastructure.Interception.DbCommandDispatcher.<Reader>b__c(DbCommand t, DbCommandInterceptionContext`1 c)
+   at System.Data.Entity.Infrastructure.Interception.InternalDispatcher`1.Dispatch[TTarget,TInterceptionContext,TResult](TTarget target, Func`3 operation, TInterceptionContext interceptionContext, Action`3 executing, Action`3 executed)
+   at System.Data.Entity.Infrastructure.Interception.DbCommandDispatcher.Reader(DbCommand command, DbCommandInterceptionContext interceptionContext)
+   at System.Data.Entity.Internal.InterceptableDbCommand.ExecuteDbDataReader(CommandBehavior behavior)
+   at System.Data.Common.DbCommand.ExecuteReader(CommandBehavior behavior)
+   at System.Data.Entity.Core.EntityClient.Internal.EntityCommandDefinition.ExecuteStoreCommands(EntityCommand entityCommand, CommandBehavior behavior)"
+8/5/2019 2:56:19 PM,System.Exception,"Error occurred during application startup","   at RockWeb.Global.Application_Start(Object sender, EventArgs e) in c:\Users\antho_000\Documents\LLC\WebWerks\NorthviewRock\Rock\RockWeb\App_Code\Global.asax.cs:line 293"
+8/5/2019 2:56:19 PM,System.Data.Entity.Core.EntityException,"The underlying provider failed on Open.","   at System.Data.Entity.Core.EntityClient.EntityConnection.Open()
+   at System.Data.Entity.Core.Objects.ObjectContext.EnsureConnection(Boolean shouldMonitorTransactions)
+   at System.Data.Entity.Core.Objects.ObjectContext.ExecuteInTransaction[T](Func`1 func, IDbExecutionStrategy executionStrategy, Boolean startLocalTransaction, Boolean releaseConnectionOnSuccess)
+   at System.Data.Entity.Core.Objects.ObjectQuery`1.<>c__DisplayClass7.<GetResults>b__5()
+   at System.Data.Entity.SqlServer.DefaultSqlExecutionStrategy.Execute[TResult](Func`1 operation)
+   at System.Data.Entity.Core.Objects.ObjectQuery`1.GetResults(Nullable`1 forMergeOption)
+   at System.Data.Entity.Core.Objects.ObjectQuery`1.<System.Collections.Generic.IEnumerable<T>.GetEnumerator>b__0()
+   at System.Data.Entity.Internal.LazyEnumerator`1.MoveNext()
+   at RockWeb.Global.LoadCacheObjects(RockContext rockContext) in c:\Users\antho_000\Documents\LLC\WebWerks\NorthviewRock\Rock\RockWeb\App_Code\Global.asax.cs:line 766
+   at RockWeb.Global.Application_Start(Object sender, EventArgs e) in c:\Users\antho_000\Documents\LLC\WebWerks\NorthviewRock\Rock\RockWeb\App_Code\Global.asax.cs:line 173"
+8/5/2019 2:56:19 PM,System.Data.SqlClient.SqlException,"A network-related or instance-specific error occurred while establishing a connection to SQL Server. The server was not found or was not accessible. Verify that the instance name is correct and that SQL Server is configured to allow remote connections. (provider: SQL Network Interfaces, error: 26 - Error Locating Server/Instance Specified)","   at System.Data.ProviderBase.DbConnectionPool.TryGetConnection(DbConnection owningObject, UInt32 waitForMultipleObjectsTimeout, Boolean allowCreate, Boolean onlyOneCheckConnection, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at System.Data.ProviderBase.DbConnectionPool.TryGetConnection(DbConnection owningObject, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at System.Data.ProviderBase.DbConnectionFactory.TryGetConnection(DbConnection owningConnection, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal oldConnection, DbConnectionInternal& connection)
+   at System.Data.ProviderBase.DbConnectionInternal.TryOpenConnectionInternal(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at System.Data.ProviderBase.DbConnectionClosed.TryOpenConnection(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at System.Data.SqlClient.SqlConnection.TryOpenInner(TaskCompletionSource`1 retry)
+   at System.Data.SqlClient.SqlConnection.TryOpen(TaskCompletionSource`1 retry)
+   at System.Data.SqlClient.SqlConnection.Open()
+   at System.Data.Entity.Infrastructure.Interception.DbConnectionDispatcher.<Open>b__36(DbConnection t, DbConnectionInterceptionContext c)
+   at System.Data.Entity.Infrastructure.Interception.InternalDispatcher`1.Dispatch[TTarget,TInterceptionContext](TTarget target, Action`2 operation, TInterceptionContext interceptionContext, Action`3 executing, Action`3 executed)
+   at System.Data.Entity.Infrastructure.Interception.DbConnectionDispatcher.Open(DbConnection connection, DbInterceptionContext interceptionContext)
+   at System.Data.Entity.Core.EntityClient.EntityConnection.<Open>b__2()
+   at System.Data.Entity.SqlServer.DefaultSqlExecutionStrategy.<>c__DisplayClass1.<Execute>b__0()
+   at System.Data.Entity.SqlServer.DefaultSqlExecutionStrategy.Execute[TResult](Func`1 operation)
+   at System.Data.Entity.SqlServer.DefaultSqlExecutionStrategy.Execute(Action operation)
+   at System.Data.Entity.Core.EntityClient.EntityConnection.Open()"
+8/13/2019 9:46:57 AM,System.Exception,"Error occurred during application startup","   at RockWeb.Global.Application_Start(Object sender, EventArgs e) in c:\Users\antho_000\Documents\LLC\WebWerks\NorthviewRock\Rock\RockWeb\App_Code\Global.asax.cs:line 293"
+8/13/2019 9:46:57 AM,System.Data.Entity.Core.EntityCommandExecutionException,"An error occurred while executing the command definition. See the inner exception for details.","   at System.Data.Entity.Core.EntityClient.Internal.EntityCommandDefinition.ExecuteStoreCommands(EntityCommand entityCommand, CommandBehavior behavior)
+   at System.Data.Entity.Core.Objects.Internal.ObjectQueryExecutionPlan.Execute[TResultType](ObjectContext context, ObjectParameterCollection parameterValues)
+   at System.Data.Entity.Core.Objects.ObjectQuery`1.<>c__DisplayClass7.<GetResults>b__6()
+   at System.Data.Entity.Core.Objects.ObjectContext.ExecuteInTransaction[T](Func`1 func, IDbExecutionStrategy executionStrategy, Boolean startLocalTransaction, Boolean releaseConnectionOnSuccess)
+   at System.Data.Entity.Core.Objects.ObjectQuery`1.<>c__DisplayClass7.<GetResults>b__5()
+   at System.Data.Entity.SqlServer.DefaultSqlExecutionStrategy.Execute[TResult](Func`1 operation)
+   at System.Data.Entity.Core.Objects.ObjectQuery`1.GetResults(Nullable`1 forMergeOption)
+   at System.Data.Entity.Core.Objects.ObjectQuery`1.<System.Collections.Generic.IEnumerable<T>.GetEnumerator>b__0()
+   at System.Data.Entity.Internal.LazyEnumerator`1.MoveNext()
+   at RockWeb.Global.LoadCacheObjects(RockContext rockContext) in c:\Users\antho_000\Documents\LLC\WebWerks\NorthviewRock\Rock\RockWeb\App_Code\Global.asax.cs:line 766
+   at RockWeb.Global.Application_Start(Object sender, EventArgs e) in c:\Users\antho_000\Documents\LLC\WebWerks\NorthviewRock\Rock\RockWeb\App_Code\Global.asax.cs:line 173"
+8/13/2019 9:46:57 AM,System.Data.SqlClient.SqlException,"Invalid object name 'dbo.EntityType'.","   at System.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at System.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at System.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj, Boolean callerHasConnectionLock, Boolean asyncClose)
+   at System.Data.SqlClient.TdsParser.TryRun(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, BulkCopySimpleResultSet bulkCopyHandler, TdsParserStateObject stateObj, Boolean& dataReady)
+   at System.Data.SqlClient.SqlDataReader.TryConsumeMetaData()
+   at System.Data.SqlClient.SqlDataReader.get_MetaData()
+   at System.Data.SqlClient.SqlCommand.FinishExecuteReader(SqlDataReader ds, RunBehavior runBehavior, String resetOptionsString, Boolean isInternal, Boolean forDescribeParameterEncryption, Boolean shouldCacheForAlwaysEncrypted)
+   at System.Data.SqlClient.SqlCommand.RunExecuteReaderTds(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, Boolean async, Int32 timeout, Task& task, Boolean asyncWrite, Boolean inRetry, SqlDataReader ds, Boolean describeParameterEncryptionRequest)
+   at System.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, String method, TaskCompletionSource`1 completion, Int32 timeout, Task& task, Boolean& usedCache, Boolean asyncWrite, Boolean inRetry)
+   at System.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, String method)
+   at System.Data.SqlClient.SqlCommand.ExecuteReader(CommandBehavior behavior, String method)
+   at System.Data.SqlClient.SqlCommand.ExecuteDbDataReader(CommandBehavior behavior)
+   at System.Data.Common.DbCommand.ExecuteReader(CommandBehavior behavior)
+   at System.Data.Entity.Infrastructure.Interception.DbCommandDispatcher.<Reader>b__c(DbCommand t, DbCommandInterceptionContext`1 c)
+   at System.Data.Entity.Infrastructure.Interception.InternalDispatcher`1.Dispatch[TTarget,TInterceptionContext,TResult](TTarget target, Func`3 operation, TInterceptionContext interceptionContext, Action`3 executing, Action`3 executed)
+   at System.Data.Entity.Infrastructure.Interception.DbCommandDispatcher.Reader(DbCommand command, DbCommandInterceptionContext interceptionContext)
+   at System.Data.Entity.Internal.InterceptableDbCommand.ExecuteDbDataReader(CommandBehavior behavior)
+   at System.Data.Common.DbCommand.ExecuteReader(CommandBehavior behavior)
+   at System.Data.Entity.Core.EntityClient.Internal.EntityCommandDefinition.ExecuteStoreCommands(EntityCommand entityCommand, CommandBehavior behavior)"
+8/13/2019 9:51:22 AM,System.Exception,"Error occurred during application startup","   at RockWeb.Global.Application_Start(Object sender, EventArgs e) in c:\Users\antho_000\Documents\LLC\WebWerks\NorthviewRock\Rock\RockWeb\App_Code\Global.asax.cs:line 293"
+8/13/2019 9:51:22 AM,System.Data.Entity.Core.EntityCommandExecutionException,"An error occurred while executing the command definition. See the inner exception for details.","   at System.Data.Entity.Core.EntityClient.Internal.EntityCommandDefinition.ExecuteStoreCommands(EntityCommand entityCommand, CommandBehavior behavior)
+   at System.Data.Entity.Core.Objects.Internal.ObjectQueryExecutionPlan.Execute[TResultType](ObjectContext context, ObjectParameterCollection parameterValues)
+   at System.Data.Entity.Core.Objects.ObjectQuery`1.<>c__DisplayClass7.<GetResults>b__6()
+   at System.Data.Entity.Core.Objects.ObjectContext.ExecuteInTransaction[T](Func`1 func, IDbExecutionStrategy executionStrategy, Boolean startLocalTransaction, Boolean releaseConnectionOnSuccess)
+   at System.Data.Entity.Core.Objects.ObjectQuery`1.<>c__DisplayClass7.<GetResults>b__5()
+   at System.Data.Entity.SqlServer.DefaultSqlExecutionStrategy.Execute[TResult](Func`1 operation)
+   at System.Data.Entity.Core.Objects.ObjectQuery`1.GetResults(Nullable`1 forMergeOption)
+   at System.Data.Entity.Core.Objects.ObjectQuery`1.<System.Collections.Generic.IEnumerable<T>.GetEnumerator>b__0()
+   at System.Data.Entity.Internal.LazyEnumerator`1.MoveNext()
+   at RockWeb.Global.LoadCacheObjects(RockContext rockContext) in c:\Users\antho_000\Documents\LLC\WebWerks\NorthviewRock\Rock\RockWeb\App_Code\Global.asax.cs:line 766
+   at RockWeb.Global.Application_Start(Object sender, EventArgs e) in c:\Users\antho_000\Documents\LLC\WebWerks\NorthviewRock\Rock\RockWeb\App_Code\Global.asax.cs:line 173"
+8/13/2019 9:51:22 AM,System.Data.SqlClient.SqlException,"Invalid object name 'dbo.EntityType'.","   at System.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at System.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at System.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj, Boolean callerHasConnectionLock, Boolean asyncClose)
+   at System.Data.SqlClient.TdsParser.TryRun(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, BulkCopySimpleResultSet bulkCopyHandler, TdsParserStateObject stateObj, Boolean& dataReady)
+   at System.Data.SqlClient.SqlDataReader.TryConsumeMetaData()
+   at System.Data.SqlClient.SqlDataReader.get_MetaData()
+   at System.Data.SqlClient.SqlCommand.FinishExecuteReader(SqlDataReader ds, RunBehavior runBehavior, String resetOptionsString, Boolean isInternal, Boolean forDescribeParameterEncryption, Boolean shouldCacheForAlwaysEncrypted)
+   at System.Data.SqlClient.SqlCommand.RunExecuteReaderTds(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, Boolean async, Int32 timeout, Task& task, Boolean asyncWrite, Boolean inRetry, SqlDataReader ds, Boolean describeParameterEncryptionRequest)
+   at System.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, String method, TaskCompletionSource`1 completion, Int32 timeout, Task& task, Boolean& usedCache, Boolean asyncWrite, Boolean inRetry)
+   at System.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, String method)
+   at System.Data.SqlClient.SqlCommand.ExecuteReader(CommandBehavior behavior, String method)
+   at System.Data.SqlClient.SqlCommand.ExecuteDbDataReader(CommandBehavior behavior)
+   at System.Data.Common.DbCommand.ExecuteReader(CommandBehavior behavior)
+   at System.Data.Entity.Infrastructure.Interception.DbCommandDispatcher.<Reader>b__c(DbCommand t, DbCommandInterceptionContext`1 c)
+   at System.Data.Entity.Infrastructure.Interception.InternalDispatcher`1.Dispatch[TTarget,TInterceptionContext,TResult](TTarget target, Func`3 operation, TInterceptionContext interceptionContext, Action`3 executing, Action`3 executed)
+   at System.Data.Entity.Infrastructure.Interception.DbCommandDispatcher.Reader(DbCommand command, DbCommandInterceptionContext interceptionContext)
+   at System.Data.Entity.Internal.InterceptableDbCommand.ExecuteDbDataReader(CommandBehavior behavior)
+   at System.Data.Common.DbCommand.ExecuteReader(CommandBehavior behavior)
+   at System.Data.Entity.Core.EntityClient.Internal.EntityCommandDefinition.ExecuteStoreCommands(EntityCommand entityCommand, CommandBehavior behavior)"
+8/13/2019 9:56:46 AM,System.Exception,"Error occurred during application startup","   at RockWeb.Global.Application_Start(Object sender, EventArgs e) in c:\Users\antho_000\Documents\LLC\WebWerks\NorthviewRock\Rock\RockWeb\App_Code\Global.asax.cs:line 293"
+8/13/2019 9:56:46 AM,System.Data.Entity.Core.EntityCommandExecutionException,"An error occurred while executing the command definition. See the inner exception for details.","   at System.Data.Entity.Core.EntityClient.Internal.EntityCommandDefinition.ExecuteStoreCommands(EntityCommand entityCommand, CommandBehavior behavior)
+   at System.Data.Entity.Core.Objects.Internal.ObjectQueryExecutionPlan.Execute[TResultType](ObjectContext context, ObjectParameterCollection parameterValues)
+   at System.Data.Entity.Core.Objects.ObjectQuery`1.<>c__DisplayClass7.<GetResults>b__6()
+   at System.Data.Entity.Core.Objects.ObjectContext.ExecuteInTransaction[T](Func`1 func, IDbExecutionStrategy executionStrategy, Boolean startLocalTransaction, Boolean releaseConnectionOnSuccess)
+   at System.Data.Entity.Core.Objects.ObjectQuery`1.<>c__DisplayClass7.<GetResults>b__5()
+   at System.Data.Entity.SqlServer.DefaultSqlExecutionStrategy.Execute[TResult](Func`1 operation)
+   at System.Data.Entity.Core.Objects.ObjectQuery`1.GetResults(Nullable`1 forMergeOption)
+   at System.Data.Entity.Core.Objects.ObjectQuery`1.<System.Collections.Generic.IEnumerable<T>.GetEnumerator>b__0()
+   at System.Data.Entity.Internal.LazyEnumerator`1.MoveNext()
+   at RockWeb.Global.LoadCacheObjects(RockContext rockContext) in c:\Users\antho_000\Documents\LLC\WebWerks\NorthviewRock\Rock\RockWeb\App_Code\Global.asax.cs:line 766
+   at RockWeb.Global.Application_Start(Object sender, EventArgs e) in c:\Users\antho_000\Documents\LLC\WebWerks\NorthviewRock\Rock\RockWeb\App_Code\Global.asax.cs:line 173"
+8/13/2019 9:56:46 AM,System.Data.SqlClient.SqlException,"Invalid column name 'IsIndexingEnabled'.
+Invalid column name 'IndexResultTemplate'.
+Invalid column name 'IndexDocumentUrl'.
+Invalid column name 'LinkUrlLavaTemplate'.","   at System.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at System.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at System.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj, Boolean callerHasConnectionLock, Boolean asyncClose)
+   at System.Data.SqlClient.TdsParser.TryRun(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, BulkCopySimpleResultSet bulkCopyHandler, TdsParserStateObject stateObj, Boolean& dataReady)
+   at System.Data.SqlClient.SqlDataReader.TryConsumeMetaData()
+   at System.Data.SqlClient.SqlDataReader.get_MetaData()
+   at System.Data.SqlClient.SqlCommand.FinishExecuteReader(SqlDataReader ds, RunBehavior runBehavior, String resetOptionsString, Boolean isInternal, Boolean forDescribeParameterEncryption, Boolean shouldCacheForAlwaysEncrypted)
+   at System.Data.SqlClient.SqlCommand.RunExecuteReaderTds(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, Boolean async, Int32 timeout, Task& task, Boolean asyncWrite, Boolean inRetry, SqlDataReader ds, Boolean describeParameterEncryptionRequest)
+   at System.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, String method, TaskCompletionSource`1 completion, Int32 timeout, Task& task, Boolean& usedCache, Boolean asyncWrite, Boolean inRetry)
+   at System.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, String method)
+   at System.Data.SqlClient.SqlCommand.ExecuteReader(CommandBehavior behavior, String method)
+   at System.Data.SqlClient.SqlCommand.ExecuteDbDataReader(CommandBehavior behavior)
+   at System.Data.Common.DbCommand.ExecuteReader(CommandBehavior behavior)
+   at System.Data.Entity.Infrastructure.Interception.DbCommandDispatcher.<Reader>b__c(DbCommand t, DbCommandInterceptionContext`1 c)
+   at System.Data.Entity.Infrastructure.Interception.InternalDispatcher`1.Dispatch[TTarget,TInterceptionContext,TResult](TTarget target, Func`3 operation, TInterceptionContext interceptionContext, Action`3 executing, Action`3 executed)
+   at System.Data.Entity.Infrastructure.Interception.DbCommandDispatcher.Reader(DbCommand command, DbCommandInterceptionContext interceptionContext)
+   at System.Data.Entity.Internal.InterceptableDbCommand.ExecuteDbDataReader(CommandBehavior behavior)
+   at System.Data.Common.DbCommand.ExecuteReader(CommandBehavior behavior)
+   at System.Data.Entity.Core.EntityClient.Internal.EntityCommandDefinition.ExecuteStoreCommands(EntityCommand entityCommand, CommandBehavior behavior)"
+8/13/2019 9:58:22 AM,System.Exception,"Unable to load MEF from Rock.SignNow, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null",""
+8/13/2019 9:58:22 AM,System.TypeLoadException,"Method 'get_CookieInitializationUrl' in type 'Rock.SignNow.SignNow' from assembly 'Rock.SignNow, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null' does not have an implementation.",""
+8/13/2019 9:58:22 AM,System.Exception,"Unable to load MEF from Rock.Rest, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null",""
+8/13/2019 9:58:22 AM,System.TypeLoadException,"Could not load type 'Rock.Model.PageViewUserAgent' from assembly 'Rock, Version=1.8.8.3, Culture=neutral, PublicKeyToken=null'.",""
+8/13/2019 9:58:22 AM,System.Exception,"Unable to load MEF from Rock.Rest, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null",""
+8/13/2019 9:58:22 AM,System.TypeLoadException,"Could not load type 'Rock.Model.CommunicationRecipientActivity' from assembly 'Rock, Version=1.8.8.3, Culture=neutral, PublicKeyToken=null'.",""
+8/13/2019 9:58:22 AM,System.Exception,"Unable to load MEF from Rock.Rest, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null",""
+8/13/2019 9:58:22 AM,System.TypeLoadException,"Could not load type 'Rock.Model.PageView' from assembly 'Rock, Version=1.8.8.3, Culture=neutral, PublicKeyToken=null'.",""
+8/13/2019 9:58:22 AM,System.Exception,"Unable to load MEF from Rock.Rest, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null",""
+8/13/2019 9:58:22 AM,System.TypeLoadException,"Could not load type 'Rock.Model.PageViewSession' from assembly 'Rock, Version=1.8.8.3, Culture=neutral, PublicKeyToken=null'.",""
+8/13/2019 9:59:20 AM,System.Exception,"Unable to load MEF from Rock.SignNow, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null",""
+8/13/2019 9:59:20 AM,System.Exception,"Unable to load MEF from Rock.Rest, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null",""
+8/13/2019 9:59:20 AM,System.TypeLoadException,"Method 'get_CookieInitializationUrl' in type 'Rock.SignNow.SignNow' from assembly 'Rock.SignNow, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null' does not have an implementation.",""
+8/13/2019 9:59:20 AM,System.TypeLoadException,"Could not load type 'Rock.Model.CommunicationRecipientActivity' from assembly 'Rock, Version=1.8.8.3, Culture=neutral, PublicKeyToken=null'.",""
+8/13/2019 9:59:21 AM,System.Exception,"Unable to load MEF from Rock.Rest, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null",""
+8/13/2019 9:59:21 AM,System.TypeLoadException,"Could not load type 'Rock.Model.PageViewSession' from assembly 'Rock, Version=1.8.8.3, Culture=neutral, PublicKeyToken=null'.",""
+8/13/2019 9:59:21 AM,System.Exception,"Unable to load MEF from Rock.Rest, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null",""
+8/13/2019 9:59:21 AM,System.TypeLoadException,"Could not load type 'Rock.Model.PageViewUserAgent' from assembly 'Rock, Version=1.8.8.3, Culture=neutral, PublicKeyToken=null'.",""
+8/13/2019 9:59:21 AM,System.Exception,"Unable to load MEF from Rock.Rest, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null",""
+8/13/2019 9:59:21 AM,System.TypeLoadException,"Could not load type 'Rock.Model.PageView' from assembly 'Rock, Version=1.8.8.3, Culture=neutral, PublicKeyToken=null'.",""
+8/13/2019 10:00:27 AM,System.Exception,"Unable to load MEF from Rock.Rest, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null",""
+8/13/2019 10:00:27 AM,System.Exception,"Unable to load MEF from Rock.Rest, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null",""
+8/13/2019 10:00:27 AM,System.Exception,"Unable to load MEF from Rock.Rest, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null",""
+8/13/2019 10:00:27 AM,System.TypeLoadException,"Could not load type 'Rock.Model.CommunicationRecipientActivity' from assembly 'Rock, Version=1.8.8.3, Culture=neutral, PublicKeyToken=null'.",""
+8/13/2019 10:00:27 AM,System.Exception,"Unable to load MEF from Rock.SignNow, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null",""
+8/13/2019 10:00:27 AM,System.TypeLoadException,"Method 'get_CookieInitializationUrl' in type 'Rock.SignNow.SignNow' from assembly 'Rock.SignNow, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null' does not have an implementation.",""
+8/13/2019 10:01:43 AM,System.Exception,"Unable to load MEF from Rock.Rest, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null",""
+8/13/2019 10:01:43 AM,System.Exception,"Unable to load MEF from Rock.Rest, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null",""
+8/13/2019 10:01:43 AM,System.TypeLoadException,"Could not load type 'Rock.Model.PageViewSession' from assembly 'Rock, Version=1.8.8.3, Culture=neutral, PublicKeyToken=null'.",""
+8/13/2019 10:01:43 AM,System.TypeLoadException,"Could not load type 'Rock.Model.PageView' from assembly 'Rock, Version=1.8.8.3, Culture=neutral, PublicKeyToken=null'.",""
+8/13/2019 10:01:43 AM,System.Exception,"Unable to load MEF from Rock.Rest, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null",""
+8/13/2019 10:01:43 AM,System.TypeLoadException,"Could not load type 'Rock.Model.PageViewUserAgent' from assembly 'Rock, Version=1.8.8.3, Culture=neutral, PublicKeyToken=null'.",""
+8/13/2019 10:01:43 AM,System.Exception,"Unable to load MEF from Rock.Rest, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null",""
+8/13/2019 10:01:43 AM,System.TypeLoadException,"Could not load type 'Rock.Model.CommunicationRecipientActivity' from assembly 'Rock, Version=1.8.8.3, Culture=neutral, PublicKeyToken=null'.",""
+8/13/2019 10:01:43 AM,System.Exception,"Unable to load MEF from Rock.SignNow, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null",""
+8/13/2019 10:01:43 AM,System.TypeLoadException,"Method 'get_CookieInitializationUrl' in type 'Rock.SignNow.SignNow' from assembly 'Rock.SignNow, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null' does not have an implementation.",""
+8/13/2019 10:02:28 AM,System.Exception,"Unable to load MEF from Rock.Rest, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null",""
+8/13/2019 10:02:28 AM,System.TypeLoadException,"Could not load type 'Rock.Model.PageView' from assembly 'Rock, Version=1.8.8.3, Culture=neutral, PublicKeyToken=null'.",""
+8/13/2019 10:02:28 AM,System.Exception,"Unable to load MEF from Rock.Rest, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null",""
+8/13/2019 10:02:28 AM,System.TypeLoadException,"Could not load type 'Rock.Model.PageViewSession' from assembly 'Rock, Version=1.8.8.3, Culture=neutral, PublicKeyToken=null'.",""
+8/13/2019 10:02:28 AM,System.Exception,"Unable to load MEF from Rock.Rest, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null",""
+8/13/2019 10:02:28 AM,System.TypeLoadException,"Could not load type 'Rock.Model.PageViewUserAgent' from assembly 'Rock, Version=1.8.8.3, Culture=neutral, PublicKeyToken=null'.",""
+8/13/2019 10:02:28 AM,System.Exception,"Unable to load MEF from Rock.SignNow, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null",""
+8/13/2019 10:02:28 AM,System.TypeLoadException,"Method 'get_CookieInitializationUrl' in type 'Rock.SignNow.SignNow' from assembly 'Rock.SignNow, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null' does not have an implementation.",""
+8/13/2019 10:02:28 AM,System.Exception,"Unable to load MEF from Rock.Rest, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null",""
+8/13/2019 10:02:28 AM,System.TypeLoadException,"Could not load type 'Rock.Model.CommunicationRecipientActivity' from assembly 'Rock, Version=1.8.8.3, Culture=neutral, PublicKeyToken=null'.",""
+8/13/2019 10:02:40 AM,System.Exception,"Unable to load MEF from Rock.Rest, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null",""
+8/13/2019 10:02:40 AM,System.TypeLoadException,"Could not load type 'Rock.Model.PageViewSession' from assembly 'Rock, Version=1.8.8.3, Culture=neutral, PublicKeyToken=null'.",""
+8/13/2019 10:02:40 AM,System.Exception,"Unable to load MEF from Rock.Rest, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null",""
+8/13/2019 10:02:40 AM,System.TypeLoadException,"Could not load type 'Rock.Model.PageViewUserAgent' from assembly 'Rock, Version=1.8.8.3, Culture=neutral, PublicKeyToken=null'.",""
+8/13/2019 10:03:35 AM,System.Exception,"Unable to load MEF from Rock.Rest, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null",""
+8/13/2019 10:03:35 AM,System.TypeLoadException,"Could not load type 'Rock.Model.PageViewUserAgent' from assembly 'Rock, Version=1.8.8.3, Culture=neutral, PublicKeyToken=null'.",""
+8/13/2019 10:03:35 AM,System.Exception,"Unable to load MEF from Rock.SignNow, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null",""
+8/13/2019 10:03:35 AM,System.Exception,"Unable to load MEF from Rock.Rest, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null",""
+8/13/2019 10:03:35 AM,System.TypeLoadException,"Method 'get_CookieInitializationUrl' in type 'Rock.SignNow.SignNow' from assembly 'Rock.SignNow, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null' does not have an implementation.",""
+8/13/2019 10:03:35 AM,System.TypeLoadException,"Could not load type 'Rock.Model.PageView' from assembly 'Rock, Version=1.8.8.3, Culture=neutral, PublicKeyToken=null'.",""
+8/13/2019 10:06:12 AM,System.Exception,"Unable to load MEF from Rock.Rest, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null",""
+8/13/2019 10:06:12 AM,System.TypeLoadException,"Could not load type 'Rock.Model.PageViewSession' from assembly 'Rock, Version=1.8.8.3, Culture=neutral, PublicKeyToken=null'.",""
+8/13/2019 10:06:12 AM,System.Exception,"Unable to load MEF from Rock.Rest, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null",""
+8/13/2019 10:06:12 AM,System.TypeLoadException,"Could not load type 'Rock.Model.PageView' from assembly 'Rock, Version=1.8.8.3, Culture=neutral, PublicKeyToken=null'.",""
+8/13/2019 10:06:12 AM,System.Exception,"Unable to load MEF from Rock.Rest, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null",""
+8/13/2019 10:06:12 AM,System.TypeLoadException,"Could not load type 'Rock.Model.CommunicationRecipientActivity' from assembly 'Rock, Version=1.8.8.3, Culture=neutral, PublicKeyToken=null'.",""
+8/13/2019 10:06:12 AM,System.Exception,"Unable to load MEF from Rock.SignNow, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null",""
+8/13/2019 10:06:12 AM,System.TypeLoadException,"Method 'get_CookieInitializationUrl' in type 'Rock.SignNow.SignNow' from assembly 'Rock.SignNow, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null' does not have an implementation.",""
+8/13/2019 10:15:53 AM,System.Exception,"Unable to load MEF from Rock.SignNow, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null",""
+8/13/2019 10:15:53 AM,System.Exception,"Unable to load MEF from Rock.Rest, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null",""
+8/13/2019 10:15:53 AM,System.TypeLoadException,"Could not load type 'Rock.Model.PageView' from assembly 'Rock, Version=1.8.8.3, Culture=neutral, PublicKeyToken=null'.",""
+8/13/2019 10:15:53 AM,System.Exception,"Unable to load MEF from Rock.Rest, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null",""
+8/13/2019 10:15:53 AM,System.TypeLoadException,"Could not load type 'Rock.Model.PageViewUserAgent' from assembly 'Rock, Version=1.8.8.3, Culture=neutral, PublicKeyToken=null'.",""
+8/13/2019 10:15:53 AM,System.Exception,"Unable to load MEF from Rock.Rest, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null",""
+8/13/2019 10:15:53 AM,System.TypeLoadException,"Could not load type 'Rock.Model.PageViewSession' from assembly 'Rock, Version=1.8.8.3, Culture=neutral, PublicKeyToken=null'.",""
+8/13/2019 10:15:53 AM,System.Exception,"Unable to load MEF from Rock.Rest, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null",""
+8/13/2019 10:15:53 AM,System.TypeLoadException,"Could not load type 'Rock.Model.CommunicationRecipientActivity' from assembly 'Rock, Version=1.8.8.3, Culture=neutral, PublicKeyToken=null'.",""
