@@ -19,6 +19,8 @@ using us.northviewchurch.Model.GNW;
 [IntegerField("Volunteer GroupType ID", "The ID of the GroupType that contains volunteer groups", true, 0)]
 [IntegerField("Project Parent Group ID", "The ID of the Parent Group that contains project groups", true, 0)]
 [IntegerField("Project GroupType ID", "The ID of the GroupType assigned project groups", true, 0)]
+[IntegerField("Text FieldType ID", "The ID of the Text FieldType", true, 1, key: "TextFieldTypeId")]
+[IntegerField("Group EntityType ID", "The ID of the Group EntityTypes", true, 16, key: "GroupEntityTypeId")]
 public partial class Plugins_us_northviewchurch_GNW_ProjectMatcher : Rock.Web.UI.RockBlock
 {
     private int _parentProjectGroupId = 0;
@@ -31,7 +33,25 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcher : Rock.Web.UI
 
     protected void Page_Load(object sender, EventArgs e)
     {
-        loadGroupData();
+        if (!Page.IsPostBack)
+        {
+            loadGroupData();
+
+            var campusSvc = new CampusService(new Rock.Data.RockContext());
+
+            var activeCampuses = campusSvc.Queryable().Where(x => x.IsActive ?? false).ToList().Select(x => new KeyValuePair<int, string>(x.Id, x.Name)).ToList();
+            activeCampuses.Add(new KeyValuePair<int, string>(-1, "All"));
+
+            this.ddlProjectCampuses.DataValueField = "Key";
+            this.ddlProjectCampuses.DataTextField = "Value";
+            this.ddlProjectCampuses.DataSource = activeCampuses.OrderBy(x => x.Key);
+            this.ddlProjectCampuses.DataBind();
+
+            this.ddlVolunteerCampuses.DataValueField = "Key";
+            this.ddlVolunteerCampuses.DataTextField = "Value";
+            this.ddlVolunteerCampuses.DataSource = activeCampuses.OrderBy(x => x.Key);
+            this.ddlVolunteerCampuses.DataBind();
+        }
     }
 
     protected void btnMatch_Click(object sender, EventArgs e)
@@ -40,8 +60,20 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcher : Rock.Web.UI
 
         var groupSvc = new GroupService(rockCtx);
 
+        var attributeSvc = new AttributeService(rockCtx);
+        var fieldTypeSvc = new FieldTypeService(rockCtx);
+        var attrValueSvc = new AttributeValueService(rockCtx);
+        var entityTypeSvc = new EntityTypeService(rockCtx);
+        var personAliasSvc = new PersonAliasService(rockCtx);
+
         var geoLocSvc = new GeoLocationService(new WebCaller());
 
+        var selectedVolunteerCampusId = Int32.Parse(this.ddlVolunteerCampuses.SelectedItem.Value);
+        var selectedProjectCampusId = Int32.Parse(this.ddlProjectCampuses.SelectedItem.Value);
+
+        loadGroupData(selectedVolunteerCampusId, selectedProjectCampusId);
+
+        //Grab a Distance Matrix from Bing! if one doesn't already exist
         foreach (var project in _partnerProjects.Where(x => !x.Distances.Any()))
         {
             var projRockGroup = groupSvc.Get(project.ID);
@@ -50,36 +82,16 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcher : Rock.Web.UI
 
             if (distResult.Success)
             {
-                var distResultString = new StringBuilder();
+                string msg = "";
 
-                foreach (var dist in distResult.ResponseObject)
+                var success = project.CreateDistancesAttribute(rockCtx, attrValueSvc, attributeSvc, fieldTypeSvc, entityTypeSvc,
+                                                               Int32.Parse(GetAttributeValue("TextFieldTypeId")), Int32.Parse(GetAttributeValue("GroupEntityTypeId")),
+                                                               distResult.ResponseObject, out msg);
+
+                if (!success)
                 {
-                    distResultString.AppendFormat("{0}:{1};", dist.Key, dist.Value);
+                    this.txtResults.Value += msg;
                 }
-
-                var distances = new Dictionary<string, double>();
-
-                var campuses = distResultString.ToString().Split(new char[] { ';' });
-
-                foreach (var campus in campuses)
-                {
-                    var distDbl = 0.0;
-
-                    var campusInfo = campus.Split(new char[] { ':' });
-
-                    var name = campusInfo[0];
-                    var dist = 0.0;
-
-                    dist = Double.TryParse(campusInfo[1], out distDbl) ? distDbl : dist = Double.MaxValue;
-
-                    distances.Add(name, dist);
-                }
-
-                project.Distances = distances;
-
-                projRockGroup.AttributeValues["Distances"].Value = distResultString.ToString();
-
-                rockCtx.SaveChanges();
             }
 
         }
@@ -103,7 +115,7 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcher : Rock.Web.UI
 
                 rockCtx.SaveChanges();
 
-                this.txtResults.InnerText += String.Format("Proj {0} Assigned Team {1}: Remaining {2}{3}", proj.Name, team.Name, proj.RemainingCapacity, Environment.NewLine);
+                this.txtResults.Value += String.Format("Proj {0} Assigned Team {1}: Remaining {2}{3}", proj.Name, team.Name, proj.RemainingCapacity, Environment.NewLine);
             }
         }
 
@@ -177,7 +189,7 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcher : Rock.Web.UI
         
     }
 
-    protected void loadGroupData()
+    protected void loadGroupData(int volunteerCampusFilter = -1, int projectCampusFilter = -1)
     {
         _parentProjectGroupId = Int32.Parse(GetAttributeValue("ProjectParentGroupID"));
         _projectGroupTypeId = Int32.Parse(GetAttributeValue("ProjectGroupTypeID"));
@@ -193,6 +205,16 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcher : Rock.Web.UI
         var unmatchedVolunteerTeams = groupSvc.GetChildren(_parentTeamGroupId, 0, false, new List<int> { _teamGroupTypeId }, new List<int> { 0 }, false, false).ToList();
 
         var attrSvc = new AttributeValueService(rockCtx);
+
+        if (volunteerCampusFilter > -1)
+        {
+            unmatchedVolunteerTeams = unmatchedVolunteerTeams.Where(x => x.CampusId.HasValue && x.CampusId.Value == volunteerCampusFilter).ToList();
+        }
+
+        if (projectCampusFilter > -1)
+        {
+            projectGroups = projectGroups.Where(x => x.CampusId.HasValue && x.CampusId.Value == projectCampusFilter).ToList();
+        }
 
         var projectNodes = new List<Node>();
         var teamNodes = new List<Node>();
@@ -247,61 +269,12 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcher : Rock.Web.UI
         //add script to PlaceHolder control
         this.placeHldrNodesJS.Controls.Add(objScript);
     }
-}
 
-[Serializable]
-public enum NodeType
-{
-    project,
-    team,
-    projectDrop,
-    teamDrop
-}
-
-[Serializable]
-public class Node
-{
-    public int id { get; set; }
-    public string title { get; set; }
-    public int familyFriendly { get; set; }
-    public int ability { get; set; }
-    public string nodeType { get; set; }
-    public NodeType actualType { get; set; }
-    public List<Node> nodes { get; set; }
-
-    public Node()
+    protected void ddlCampuses_SelectedIndexChanged(object sender, EventArgs e)
     {
-        nodes = new List<Node>();
-    }
+        var selectedVolunteerCampusId = Int32.Parse(this.ddlVolunteerCampuses.SelectedItem.Value);
+        var selectedProjectCampusId = Int32.Parse(this.ddlProjectCampuses.SelectedItem.Value);
 
-    public static Node GetNodesFromProjectGroup(PartnerProject project)
-    {
-        var node = new Node()
-        {
-            id = project.ID,
-            title = project.Name,
-            familyFriendly = (int)project.FamilyFriendliness,
-            ability = (int)project.AbilityLevel,
-            nodeType = NodeType.project.ToString(),
-            actualType = NodeType.project,
-            nodes = project.AssignedTeams.Select(x=> Node.GetNodesFromVolunteerGroup(x)).ToList()
-        };
-                
-        return node;
-    }
-
-    public static Node GetNodesFromVolunteerGroup(VolunteerGroup group)
-    {
-        var node = new Node()
-        {
-            id = group.ID,
-            title = group.Name,
-            familyFriendly = (int)group.FamilyFriendliness,
-            ability = (int)group.AbilityLevel,
-            nodeType = NodeType.team.ToString(),
-            actualType = NodeType.team,
-        };
-
-        return node;
+        loadGroupData(selectedVolunteerCampusId, selectedProjectCampusId);
     }
 }

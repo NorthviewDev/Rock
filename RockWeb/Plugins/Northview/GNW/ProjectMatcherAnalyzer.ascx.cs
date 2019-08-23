@@ -15,10 +15,12 @@ using us.northviewchurch.Model.GNW;
 [DisplayName("GNW Project Volunteer Matcher Analyzer")]
 [Category("Northview > GNW")]
 [Description("Provides analytics on the Project Matcher without actually making the assignments")]
-[IntegerField("Volunteer Parent Group ID","The ID of the Parent Group that contains volunteer groups", true, 0)]
-[IntegerField("Volunteer GroupType ID", "The ID of the GroupType that contains volunteer groups", true, 0)]
-[IntegerField("Default Project Parent Group ID", "The ID of the Parent Group that contains project groups", true, 0)]
-[IntegerField("Default Project GroupType ID", "The ID of the GroupType assigned project groups", true, 0)]
+[IntegerField("Volunteer Parent Group ID","The ID of the Parent Group that contains volunteer groups", true, 0,key: "VolunteerParentGroupID")]
+[IntegerField("Volunteer GroupType ID", "The ID of the GroupType that contains volunteer groups", true, 0, key: "VolunteerGroupTypeID")]
+[IntegerField("Default Project Parent Group ID", "The ID of the Parent Group that contains project groups", true, 0, key: "ProjectParentGroupID")]
+[IntegerField("Default Project GroupType ID", "The ID of the GroupType assigned project groups", true, 0, key: "ProjectGroupTypeID")]
+[IntegerField("Text FieldType ID", "The ID of the Text FieldType", true, 1, key: "TextFieldTypeId")]
+[IntegerField("Group EntityType ID", "The ID of the Group EntityTypes", true, 16, key: "GroupEntityTypeId")]
 public partial class Plugins_us_northviewchurch_GNW_ProjectMatcherAnalyzer : Rock.Web.UI.RockBlock
 {
     private int _parentProjectGroupId = 0;
@@ -31,7 +33,25 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcherAnalyzer : Roc
 
     protected void Page_Load(object sender, EventArgs e)
     {
-        loadGroupData();
+        if (!Page.IsPostBack)
+        {
+            loadGroupData();
+
+            var campusSvc = new CampusService(new Rock.Data.RockContext());
+
+            var activeCampuses = campusSvc.Queryable().Where(x => x.IsActive ?? false).ToList().Select(x => new KeyValuePair<int, string>(x.Id, x.Name)).ToList();
+            activeCampuses.Add(new KeyValuePair<int, string>(-1, "All"));
+
+            this.ddlProjectCampuses.DataValueField = "Key";
+            this.ddlProjectCampuses.DataTextField = "Value";
+            this.ddlProjectCampuses.DataSource = activeCampuses.OrderBy(x => x.Key);
+            this.ddlProjectCampuses.DataBind();
+
+            this.ddlVolunteerCampuses.DataValueField = "Key";
+            this.ddlVolunteerCampuses.DataTextField = "Value";
+            this.ddlVolunteerCampuses.DataSource = activeCampuses.OrderBy(x => x.Key);
+            this.ddlVolunteerCampuses.DataBind();
+        }
     }
 
     protected void btnMatch_Click(object sender, EventArgs e)
@@ -39,15 +59,44 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcherAnalyzer : Roc
         var rockCtx = new Rock.Data.RockContext();
 
         var groupSvc = new GroupService(rockCtx);
-        
-        var geoLocSvc = new GeoLocationService(new TestWebCaller());
 
+        var attributeSvc = new AttributeService(rockCtx);
+        var fieldTypeSvc = new FieldTypeService(rockCtx);
+        var attrValueSvc = new AttributeValueService(rockCtx);
+        var entityTypeSvc = new EntityTypeService(rockCtx);
+        var personAliasSvc = new PersonAliasService(rockCtx);
+
+        var geoLocSvc = new GeoLocationService(new TestWebCaller());
+        
         var longestDistance = 0.0;
         var unmatchedTeams = new List<VolunteerGroup>();
         var unmatchedProjects = new List<PartnerProject>();
         var fullProjects = new List<PartnerProject>();
-        var averageVolunteerCount = 0;
+        var averageVolunteerCount = 0M;
 
+        var mileageWarnings = new Dictionary<double, int>();
+
+        if (!String.IsNullOrWhiteSpace(this.hdnMileageWarnings.Value))
+        {
+            var warnings = this.hdnMileageWarnings.Value.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (var warning in warnings)
+            {
+                var warnVal = 0.0;
+
+                if (Double.TryParse(warning, out warnVal))
+                {
+                    mileageWarnings.Add(warnVal, 0);
+                }
+            } 
+        }
+
+        var selectedVolunteerCampusId = Int32.Parse(this.ddlVolunteerCampuses.SelectedItem.Value);
+        var selectedProjectCampusId = Int32.Parse(this.ddlProjectCampuses.SelectedItem.Value);
+
+        loadGroupData(selectedVolunteerCampusId, selectedProjectCampusId);
+
+        //Grab a Distance Matrix from Bing! if one doesn't already exist
         foreach (var project in _partnerProjects.Where(x=> !x.Distances.Any()))
         {
             var projRockGroup = groupSvc.Get(project.ID);
@@ -56,41 +105,23 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcherAnalyzer : Roc
 
             if(distResult.Success)
             {
-                var distResultString = new StringBuilder();
+                string msg = "";
 
-                foreach(var dist in distResult.ResponseObject)
+                var success = project.CreateDistancesAttribute(rockCtx, attrValueSvc, attributeSvc, fieldTypeSvc, entityTypeSvc, 
+                                                               Int32.Parse(GetAttributeValue("TextFieldTypeId")), Int32.Parse(GetAttributeValue("GroupEntityTypeId")), 
+                                                               distResult.ResponseObject, out msg);
+
+                if(!success)
                 {
-                    distResultString.AppendFormat("{0}:{1};",dist.Key, dist.Value);
+                    this.txtLog.Value += msg;
                 }
-
-                var distances = new Dictionary<string, double>();
-
-                var campuses = distResultString.ToString().Split(new char[] { ';' });
-
-                foreach (var campus in campuses)
-                {
-                    var distDbl = 0.0;
-
-                    var campusInfo = campus.Split(new char[] { ':' });
-
-                    var name = campusInfo[0];
-                    var dist = 0.0;
-
-                    dist = Double.TryParse(campusInfo[1], out distDbl) ? distDbl : dist = Double.MaxValue;
-
-                    distances.Add(name, dist);
-                }
-
-                project.Distances = distances;
-
-                //projRockGroup.AttributeValues["Distances"].Value = distResultString.ToString();
-
-                //rockCtx.SaveChanges();
             }
 
         }
 
-        var maxDistance = Double.Parse(GetAttributeValue("ProjectParentGroupID"));
+        var distVal = 0.0;
+
+        var maxDistance = Double.TryParse(this.inputMaxDistance.Value, out distVal) ? distVal : Double.MaxValue;
 
         foreach (var team in _volunteerTeams)
         {
@@ -116,6 +147,19 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcherAnalyzer : Roc
                     longestDistance = distToTravel;
                 }
 
+                var lastDist = 0.0;
+
+                foreach(var warning in mileageWarnings.Keys)
+                {
+                    if(distToTravel >= lastDist && distToTravel <= warning)
+                    {
+                        mileageWarnings[warning]++;
+                        break;
+                    }
+
+                    lastDist = warning;
+                }
+
                 this.txtResults.InnerText += String.Format("Proj {0} Assigned Team {1}: Remaining {2}{3}", proj.Name, team.Name, proj.RemainingCapacity, Environment.NewLine);
             }
             else
@@ -124,77 +168,38 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcherAnalyzer : Roc
             }
         }
 
-        //loadGroupData();
-    }
+        //Compile some stats!
+        unmatchedProjects = this._partnerProjects.Where(x=> x.TotalVolunteers == 0).ToList();
+        fullProjects = this._partnerProjects.Where(x => x.RemainingCapacity == 0).ToList();
+        averageVolunteerCount = this._partnerProjects.Sum(x => x.TotalVolunteers) / this._partnerProjects.Count;
 
-    protected void btnAssign_Click(object sender, EventArgs e)
-    {
-        if(Page.IsPostBack)
+        var stats = new StringBuilder();
+
+        stats.AppendFormat("Results for Teams from: {0} and Projects for: {1}{2}", this.ddlVolunteerCampuses.SelectedItem.Text, this.ddlProjectCampuses.SelectedItem.Text, Environment.NewLine);
+        stats.AppendFormat("Average Volunteers per Project: {0} {1}", averageVolunteerCount, Environment.NewLine);
+        stats.AppendFormat("Longest Driving Distance: {0} {1}", longestDistance, Environment.NewLine);
+        stats.AppendFormat("Number of Unmatched Teams: {0} {1}", unmatchedTeams.Count, Environment.NewLine);
+        stats.AppendFormat("Number of Unmatched Projects: {0} {1}", unmatchedProjects.Count, Environment.NewLine);
+        stats.AppendFormat("Number of Full Projects: {0} {1}", fullProjects.Count, Environment.NewLine);
+
+        if(mileageWarnings.Any())
         {
-            var assignmentJson = this.hdnAssignments.Value;
-            var unassignedJson = this.hdnUnassigned.Value;
+            stats.AppendLine("Mileage Alerts:");
 
-            var assignmentNodes = JsonConvert.DeserializeObject<List<Node>>(assignmentJson);
+            var lastDist = 0.0;
 
-            var unassignedNodes = JsonConvert.DeserializeObject<List<Node>>(unassignedJson);
-
-            var rockCtx = new Rock.Data.RockContext();
-
-            var groupSvc = new GroupService(rockCtx);
-
-            if (assignmentNodes != null)
+            foreach (var warning in mileageWarnings)
             {
-                foreach (var projectNode in assignmentNodes)
-                {
-                    if (projectNode.actualType == NodeType.project)
-                    {
-                        if (projectNode.nodes != null && projectNode.nodes.Any())
-                        {
-                            var teamNodes = projectNode.nodes.Where(x => x.actualType == NodeType.team).ToList();
-
-                            foreach (var teamNode in teamNodes)
-                            {
-                                var projectId = projectNode.id;
-                                var teamId = teamNode.id;
-
-                                if (teamId != projectId)
-                                {
-                                    var teamRockGroup = groupSvc.Get(teamId);
-
-                                    teamRockGroup.ParentGroupId = projectId;
-
-                                    //rockCtx.SaveChanges(); 
-                                }
-                            }
-                        }
-                    }
-                } 
+                stats.AppendFormat("Number driving >= {0} and <= {1} miles: {2}{3}", lastDist, warning.Key, warning.Value, Environment.NewLine);
+                lastDist = warning.Key;
             }
-
-            if (unassignedNodes != null)
-            {
-                foreach (var teamNode in unassignedNodes)
-                {
-                    var projectId = _parentTeamGroupId;
-                    var teamId = teamNode.id;
-
-                    if (teamId != projectId)
-                    {
-                        var teamRockGroup = groupSvc.Get(teamId);
-
-                        teamRockGroup.ParentGroupId = projectId;
-
-                        //rockCtx.SaveChanges();
-                    }
-                } 
-            }
-
-            loadGroupData();
         }
-        
+
+        this.txtResults.Value = stats.ToString();
+
     }
 
-    protected void loadGroupData()
+    protected void loadGroupData(int volunteerCampusFilter= -1, int projectCampusFilter = -1)
     {
         _parentProjectGroupId = Int32.Parse(GetAttributeValue("ProjectParentGroupID"));
         _projectGroupTypeId = Int32.Parse(GetAttributeValue("ProjectGroupTypeID"));
@@ -214,6 +219,16 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcherAnalyzer : Roc
         var projectNodes = new List<Node>();
         var teamNodes = new List<Node>();
 
+        if(volunteerCampusFilter > -1)
+        {
+            unmatchedVolunteerTeams = unmatchedVolunteerTeams.Where(x => x.CampusId.HasValue && x.CampusId.Value == volunteerCampusFilter).ToList();
+        }
+
+        if (projectCampusFilter > -1)
+        {
+            projectGroups = projectGroups.Where(x => x.CampusId.HasValue && x.CampusId.Value == projectCampusFilter).ToList();
+        }
+
         foreach (var projGrp in projectGroups)
         {
             var partnerProj = PartnerProject.CreateFromRockGroup(projGrp, attrSvc);
@@ -225,10 +240,6 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcherAnalyzer : Roc
             partnerProj.AssignedTeams = groups;
 
             _partnerProjects.Add(partnerProj);
-
-            var projNode = Node.GetNodesFromProjectGroup(partnerProj);
-
-            projectNodes.Add(projNode);
         }
 
         foreach (var volTeam in unmatchedVolunteerTeams)
@@ -236,89 +247,14 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcherAnalyzer : Roc
             var volunteerGrp = VolunteerGroup.CreateFromRockGroup(volTeam, attrSvc);
 
             _volunteerTeams.Add(volunteerGrp);
-
-            var teamNode = Node.GetNodesFromVolunteerGroup(volunteerGrp);
-
-            teamNodes.Add(teamNode);
         }
-
-        //create a string for the inner HTML of the script
-
-        var projNodesStrings = JsonConvert.SerializeObject(projectNodes);
-
-        var volNodesStrings = JsonConvert.SerializeObject(teamNodes);
-
-        var sb = new StringBuilder();
-        sb.Append(String.Format(@"
-        var projectNodes = {0};
-        var volunteerNodes = {1};
-        ", String.Join(",", projNodesStrings), String.Join(",", volNodesStrings)));
-
-        //create script control
-        var objScript = new HtmlGenericControl("script");
-        //add javascript type
-        objScript.Attributes.Add("type", "text/javascript");
-        //set innerHTML to be our StringBuilder string
-        objScript.InnerHtml = sb.ToString();
-
-        //add script to PlaceHolder control
-        this.placeHldrNodesJS.Controls.Add(objScript);
-    }
-}
-
-[Serializable]
-public enum NodeType
-{
-    project,
-    team,
-    projectDrop,
-    teamDrop
-}
-
-[Serializable]
-public class Node
-{
-    public int id { get; set; }
-    public string title { get; set; }
-    public int familyFriendly { get; set; }
-    public int ability { get; set; }
-    public string nodeType { get; set; }
-    public NodeType actualType { get; set; }
-    public List<Node> nodes { get; set; }
-
-    public Node()
-    {
-        nodes = new List<Node>();
     }
 
-    public static Node GetNodesFromProjectGroup(PartnerProject project)
+    protected void ddlCampuses_SelectedIndexChanged(object sender, EventArgs e)
     {
-        var node = new Node()
-        {
-            id = project.ID,
-            title = project.Name,
-            familyFriendly = (int)project.FamilyFriendliness,
-            ability = (int)project.AbilityLevel,
-            nodeType = NodeType.project.ToString(),
-            actualType = NodeType.project,
-            nodes = project.AssignedTeams.Select(x=> Node.GetNodesFromVolunteerGroup(x)).ToList()
-        };
-                
-        return node;
-    }
+        var selectedVolunteerCampusId = Int32.Parse(this.ddlVolunteerCampuses.SelectedItem.Value);
+        var selectedProjectCampusId = Int32.Parse(this.ddlProjectCampuses.SelectedItem.Value);
 
-    public static Node GetNodesFromVolunteerGroup(VolunteerGroup group)
-    {
-        var node = new Node()
-        {
-            id = group.ID,
-            title = group.Name,
-            familyFriendly = (int)group.FamilyFriendliness,
-            ability = (int)group.AbilityLevel,
-            nodeType = NodeType.team.ToString(),
-            actualType = NodeType.team,
-        };
-
-        return node;
+        loadGroupData(selectedVolunteerCampusId, selectedProjectCampusId);
     }
 }

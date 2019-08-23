@@ -32,7 +32,16 @@
 </div>
 <div class="row">
     <div class="col-sm-3">
-        
+        <div>
+            <div class="col-sm-6">
+                <label>Volunteer Campus Filter</label>
+                <asp:DropDownList runat="server" ID="ddlVolunteerCampuses" ClientIDMode="Static" OnSelectedIndexChanged="ddlCampuses_SelectedIndexChanged" AutoPostBack="true"></asp:DropDownList>
+            </div>
+             <div class="col-sm-6">
+                 <label>Project Campus Filter</label>
+                  <asp:DropDownList runat="server" ID="ddlProjectCampuses" ClientIDMode="Static" OnSelectedIndexChanged="ddlCampuses_SelectedIndexChanged" AutoPostBack="true"></asp:DropDownList>
+            </div>
+        </div>
     </div>
     <div class="col-sm-4">
         <h2>Auto Match Results Log</h2>

@@ -1,8 +1,11 @@
-﻿using Rock.Model;
+﻿using Rock.Data;
+using Rock.Model;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Text;
+using Attribute = Rock.Model.Attribute;
 
 namespace us.northviewchurch.Model.GNW
 {
@@ -129,7 +132,84 @@ namespace us.northviewchurch.Model.GNW
             return false;
         }
 
-        public static PartnerProject CreateFromRockGroup(Group RockGroup, Rock.Data.Service<AttributeValue> AttrValueSvc)
+        public bool CreateDistancesAttribute(DbContext RockCtx,Service<AttributeValue> AttrValueSvc, 
+                                            Service<Attribute> AttrSvc, Service<FieldType> FieldTypeSvc, 
+                                            Service<EntityType> EntityTypeSvc, int TextFieldTypeId, int GroupEntityTypeId,
+                                            Dictionary<string,double> DistanceMatrix, out string message)
+        {
+            var success = false;
+
+            message = "Processing Distance Matrix";
+
+            try
+            {
+                var distResultString = new StringBuilder();
+
+                if (!DistanceMatrix.Any())
+                {
+                    message = "Distance Matrix did not contain any entries!";
+                    return false;
+                }
+
+                foreach (var dist in DistanceMatrix)
+                {
+                    distResultString.AppendFormat("{0}:{1};", dist.Key, dist.Value);
+                }  
+
+                this.Distances = DistanceMatrix;
+
+                var distAttr = AttrSvc.Queryable().FirstOrDefault(t => t.Key == "Distances");
+                var distAttrValue = AttrValueSvc.Queryable().Where(t => t.EntityId == this.ID).ToList().FirstOrDefault(x => x.AttributeKey == "Distances");
+
+                var distMatrixStr = distResultString.ToString();
+
+                if (distAttr == null)
+                {
+                    var textFieldType = FieldTypeSvc.Get(TextFieldTypeId);
+                    var groupEntityType = EntityTypeSvc.Get(16);
+
+                    distAttr = new Rock.Model.Attribute()
+                    {
+                        Name = "Distances",
+                        Key = "Distances",
+                        FieldType = textFieldType,
+                        EntityType = groupEntityType
+                    };
+
+                    AttrSvc.Add(distAttr);
+                    RockCtx.SaveChanges();
+                }
+
+                if(distAttrValue == null)
+                { 
+                    distAttrValue = new Rock.Model.AttributeValue()
+                    {
+                        Attribute = distAttr,
+                        Value = distMatrixStr,
+                        EntityId = this.ID
+                    };
+
+                    AttrValueSvc.Add(distAttrValue);
+                }
+                else
+                {
+                    distAttrValue.Value = distMatrixStr;
+                }
+
+                RockCtx.SaveChanges();
+
+                success = true;
+                message = "Success!";
+            }
+            catch(Exception e)
+            {
+                message = String.Format("Error: {0} \r\n Stack: {1}", e.Message, e.StackTrace);
+            }
+
+            return success;
+        }
+
+        public static PartnerProject CreateFromRockGroup(Group RockGroup, Service<AttributeValue> AttrValueSvc)
         {
             var projAttrs = AttrValueSvc.Queryable().Where(t => (t.EntityId == RockGroup.Id || (RockGroup.Id == null && t.EntityId == null))).ToList();
 
@@ -137,7 +217,7 @@ namespace us.northviewchurch.Model.GNW
             var volCap = projAttrs.FirstOrDefault(x => x.AttributeKey == "VolunteerCapacity");
             var abilityLevel = projAttrs.FirstOrDefault(x => x.AttributeKey == "AbilityLevel");
             var famFriendly = projAttrs.FirstOrDefault(x => x.AttributeKey == "FamilyFriendly");
-            var campusDistances = projAttrs.FirstOrDefault(x => x.AttributeKey == "CampusDistances");
+            var campusDistances = projAttrs.FirstOrDefault(x => x.AttributeKey == "Distances");
 
             var volCapDec = 0M;
 
@@ -145,25 +225,9 @@ namespace us.northviewchurch.Model.GNW
 
             var distances = new Dictionary<string, double>();
 
-            if (campusDistances != null && !String.IsNullOrWhiteSpace(campusDistances.Value))
+            if(campusDistances != null)
             {
-                var campuses = campusDistances.Value.Split(new char[] {';'});
-
-                foreach(var campus in campuses)
-                {
-                    var distDbl = 0.0;
-
-                    var campusInfo = campus.Split(new char[] { ':' });
-
-                    var name = campusInfo[0];
-                    var dist = 0.0;
-
-                    dist = Double.TryParse(campusInfo[1], out distDbl) ? distDbl : dist = Double.MaxValue ;
-
-                    distances.Add(name, dist);
-                }
-
-
+                distances = ParseDistanceMatrixString(campusDistances.Value);
             }
 
             var proj = new PartnerProject
@@ -179,6 +243,32 @@ namespace us.northviewchurch.Model.GNW
             };
 
             return proj;
+        }
+
+        protected static Dictionary<string,double> ParseDistanceMatrixString(string DistanceMatrixStr)
+        {
+            var distances = new Dictionary<string, double>();
+
+            if (!String.IsNullOrWhiteSpace(DistanceMatrixStr))
+            {
+                var campuses = DistanceMatrixStr.Split(new char[] { ';' },StringSplitOptions.RemoveEmptyEntries);
+
+                foreach (var campus in campuses)
+                {
+                    var distDbl = 0.0;
+
+                    var campusInfo = campus.Split(new char[] { ':' });
+
+                    var name = campusInfo[0];
+                    var dist = 0.0;
+
+                    dist = Double.TryParse(campusInfo[1], out distDbl) ? distDbl : dist = Double.MaxValue;
+
+                    distances.Add(name, dist);
+                }
+            }
+
+            return distances;
         }
     }
 
@@ -213,7 +303,7 @@ namespace us.northviewchurch.Model.GNW
                 AbilityLevel = (AbilityLevelTypes)Enum.Parse(typeof(AbilityLevelTypes), abilityLevel.Value),
                 FamilyFriendliness = (FamilyFriendlyType)Enum.Parse(typeof(FamilyFriendlyType), famFriendly.Value),
                 VolunteerCount = RockGroup.Members.Count,
-                HomeCampus = RockGroup.ParentGroup.Name
+                HomeCampus = RockGroup.Campus.Name
             };
 
             return vg;
@@ -229,6 +319,63 @@ namespace us.northviewchurch.Model.GNW
                                         .ToList();
 
             return potentials;
+        }
+    }
+
+    [Serializable]
+    public enum NodeType
+    {
+        project,
+        team,
+        projectDrop,
+        teamDrop
+    }
+
+    [Serializable]
+    public class Node
+    {
+        public int id { get; set; }
+        public string title { get; set; }
+        public int familyFriendly { get; set; }
+        public int ability { get; set; }
+        public string nodeType { get; set; }
+        public NodeType actualType { get; set; }
+        public List<Node> nodes { get; set; }
+
+        public Node()
+        {
+            nodes = new List<Node>();
+        }
+
+        public static Node GetNodesFromProjectGroup(PartnerProject project)
+        {
+            var node = new Node()
+            {
+                id = project.ID,
+                title = project.Name,
+                familyFriendly = (int)project.FamilyFriendliness,
+                ability = (int)project.AbilityLevel,
+                nodeType = NodeType.project.ToString(),
+                actualType = NodeType.project,
+                nodes = project.AssignedTeams.Select(x => Node.GetNodesFromVolunteerGroup(x)).ToList()
+            };
+
+            return node;
+        }
+
+        public static Node GetNodesFromVolunteerGroup(VolunteerGroup group)
+        {
+            var node = new Node()
+            {
+                id = group.ID,
+                title = group.Name,
+                familyFriendly = (int)group.FamilyFriendliness,
+                ability = (int)group.AbilityLevel,
+                nodeType = NodeType.team.ToString(),
+                actualType = NodeType.team,
+            };
+
+            return node;
         }
     }
 }
