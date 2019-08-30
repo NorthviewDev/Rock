@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using Rock.Attribute;
+﻿using Rock.Attribute;
 using Rock.Model;
 using RockWeb;
 using System;
@@ -8,26 +7,21 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Web.UI;
-using System.Web.UI.HtmlControls;
 using System.Web.UI.WebControls;
 using us.northviewchurch.Model.GNW;
 
 [DisplayName("GNW Project Volunteer Matcher Analyzer")]
 [Category("Northview > GNW")]
 [Description("Provides analytics on the Project Matcher without actually making the assignments")]
-[IntegerField("Volunteer Parent Group ID","The ID of the Parent Group that contains volunteer groups", true, 0,key: "VolunteerParentGroupID")]
 [IntegerField("Volunteer GroupType ID", "The ID of the GroupType that contains volunteer groups", true, 0, key: "VolunteerGroupTypeID")]
-[IntegerField("Default Project Parent Group ID", "The ID of the Parent Group that contains project groups", true, 0, key: "ProjectParentGroupID")]
 [IntegerField("Default Project GroupType ID", "The ID of the GroupType assigned project groups", true, 0, key: "ProjectGroupTypeID")]
 [IntegerField("Text FieldType ID", "The ID of the Text FieldType", true, 1, key: "TextFieldTypeId")]
 [IntegerField("Group EntityType ID", "The ID of the Group EntityTypes", true, 16, key: "GroupEntityTypeId")]
 public partial class Plugins_us_northviewchurch_GNW_ProjectMatcherAnalyzer : Rock.Web.UI.RockBlock
-{
-    private int _parentProjectGroupId = 0;
+{    
     private int _projectGroupTypeId = 0;
     private List<PartnerProject> _partnerProjects = new List<PartnerProject>();
-
-    private int _parentTeamGroupId = 0;
+   
     private int _teamGroupTypeId = 0;
     private List<VolunteerGroup> _volunteerTeams = new List<VolunteerGroup>();
 
@@ -200,19 +194,20 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcherAnalyzer : Roc
     }
 
     protected void loadGroupData(int volunteerCampusFilter= -1, int projectCampusFilter = -1)
-    {
-        _parentProjectGroupId = Int32.Parse(GetAttributeValue("ProjectParentGroupID"));
+    {        
         _projectGroupTypeId = Int32.Parse(GetAttributeValue("ProjectGroupTypeID"));
-
-        _parentTeamGroupId = Int32.Parse(GetAttributeValue("VolunteerParentGroupID"));
+        
         _teamGroupTypeId = Int32.Parse(GetAttributeValue("VolunteerGroupTypeID"));
 
         var rockCtx = new Rock.Data.RockContext();
 
         var groupSvc = new GroupService(rockCtx);
 
-        var projectGroups = groupSvc.GetChildren(_parentProjectGroupId, 0, false, new List<int> { _projectGroupTypeId }, new List<int> { 0 }, false, false).ToList();
-        var unmatchedVolunteerTeams = groupSvc.GetChildren(_parentTeamGroupId, 0, false, new List<int> { _teamGroupTypeId }, new List<int> { 0 }, false, false).ToList();
+        var projectGroups = groupSvc.Queryable().Where(x=> x.GroupTypeId == _projectGroupTypeId).ToList();
+        var unmatchedVolunteerTeams = groupSvc.Queryable().Where(x => x.GroupTypeId == _teamGroupTypeId && x.ParentGroup.GroupTypeId != _projectGroupTypeId).ToList();
+
+        // var projectGroups = groupSvc.GetChildren(_parentProjectGroupId, 0, false, new List<int> { _projectGroupTypeId }, new List<int> { 0 }, false, false).ToList();
+        //var unmatchedVolunteerTeams = groupSvc.GetChildren(_parentTeamGroupId, 0, false, new List<int> { _teamGroupTypeId }, new List<int> { 0 }, false, false).ToList();
 
         var attrSvc = new AttributeValueService(rockCtx);
 

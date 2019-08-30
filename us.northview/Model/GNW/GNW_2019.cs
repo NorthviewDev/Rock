@@ -92,6 +92,8 @@ namespace us.northviewchurch.Model.GNW
     [Serializable]
     public class PartnerProject
     {
+        private string _homeCampus = "";
+
         public int ID { get; set; }
         public decimal VolunteerCapacity { get; set; }
         public decimal TotalVolunteers { get; set; }
@@ -112,8 +114,6 @@ namespace us.northviewchurch.Model.GNW
         public decimal RemainingCapacity { get { return VolunteerCapacity - TotalVolunteers; } }
 
         public double DistanceToHome { get { return Distances.ContainsKey(_homeCampus) ? Distances[_homeCampus] : Double.MaxValue; } }
-
-        private string _homeCampus;
 
         public PartnerProject()
         {
@@ -211,36 +211,45 @@ namespace us.northviewchurch.Model.GNW
 
         public static PartnerProject CreateFromRockGroup(Group RockGroup, Service<AttributeValue> AttrValueSvc)
         {
-            var projAttrs = AttrValueSvc.Queryable().Where(t => (t.EntityId == RockGroup.Id || (RockGroup.Id == null && t.EntityId == null))).ToList();
+            var proj = new PartnerProject();
 
-            var orgAddr = projAttrs.FirstOrDefault(x => x.AttributeKey == "OrganizationAddress");
-            var volCap = projAttrs.FirstOrDefault(x => x.AttributeKey == "VolunteerCapacity");
-            var abilityLevel = projAttrs.FirstOrDefault(x => x.AttributeKey == "AbilityLevel");
-            var famFriendly = projAttrs.FirstOrDefault(x => x.AttributeKey == "FamilyFriendly");
-            var campusDistances = projAttrs.FirstOrDefault(x => x.AttributeKey == "Distances");
-
-            var volCapDec = 0M;
-
-            Decimal.TryParse(volCap.Value, out volCapDec);
-
-            var distances = new Dictionary<string, double>();
-
-            if(campusDistances != null)
+            try
             {
-                distances = ParseDistanceMatrixString(campusDistances.Value);
+                var projAttrs = AttrValueSvc.Queryable().Where(t => (t.EntityId == RockGroup.Id || (RockGroup.Id == null && t.EntityId == null))).ToList();
+
+                var orgAddr = projAttrs.FirstOrDefault(x => x.AttributeKey == "OrganizationAddress");
+                var volCap = projAttrs.FirstOrDefault(x => x.AttributeKey == "VolunteerCapacity");
+                var abilityLevel = projAttrs.FirstOrDefault(x => x.AttributeKey == "AbilityLevel");
+                var famFriendly = projAttrs.FirstOrDefault(x => x.AttributeKey == "FamilyFriendly");
+                var campusDistances = projAttrs.FirstOrDefault(x => x.AttributeKey == "Distances");
+
+                var volCapDec = 0M;
+
+                Decimal.TryParse(volCap.Value, out volCapDec);
+
+                var distances = new Dictionary<string, double>();
+
+                if (campusDistances != null)
+                {
+                    distances = ParseDistanceMatrixString(campusDistances.Value);
+                }
+
+                proj = new PartnerProject
+                {
+                    ID = RockGroup.Id,
+                    Name = RockGroup.Name,
+                    OrgAddress = orgAddr == null ? "" : orgAddr.Value,
+                    AbilityLevel = (AbilityLevelTypes)Enum.Parse(typeof(AbilityLevelTypes), abilityLevel.Value),
+                    FamilyFriendliness = (FamilyFriendlyType)Enum.Parse(typeof(FamilyFriendlyType), famFriendly.Value),
+                    VolunteerCapacity = volCapDec,
+                    TotalVolunteers = RockGroup.Members.Count,
+                    Distances = distances
+                };
             }
-
-            var proj = new PartnerProject
+            catch(Exception e)
             {
-                ID = RockGroup.Id,
-                Name = RockGroup.Name,
-                OrgAddress = orgAddr == null ? "" : orgAddr.Value,
-                AbilityLevel = (AbilityLevelTypes)Enum.Parse(typeof(AbilityLevelTypes), abilityLevel.Value),
-                FamilyFriendliness = (FamilyFriendlyType)Enum.Parse(typeof(FamilyFriendlyType), famFriendly.Value),
-                VolunteerCapacity = volCapDec,
-                TotalVolunteers = RockGroup.Members.Count,
-                Distances = distances
-            };
+
+            }
 
             return proj;
         }
