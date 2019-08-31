@@ -96,33 +96,9 @@ public partial class Plugins_Northview_GNW_GNWDashboard : Rock.Web.UI.RockBlock
             allNorthview.TotalVolunteers += volunteerCount;
             allNorthview.AdultMembers += memberCount;
 
-            //_thermometerRenderStrings.Add(String.Format("renderThermometer('{0}', {1}, {2});{3}", campus.Name.Replace(" ", ""), (volunteerCount/memberCount)*100, memberCount, Environment.NewLine));
-
-            _thermometerRenderStrings.Add(String.Format("renderThermometer('{0}', {1}, {2});{3}",campus.Name.Replace(" ",""),new Random().Next(100,800)*.11,new Random().Next(750,2000), Environment.NewLine));
+            _thermometerRenderStrings.Add(String.Format("renderThermometer('{0}', {1}, {2});{3}", campus.Name.Replace(" ", ""), (volunteerCount/memberCount)*100, memberCount, Environment.NewLine));
             
         }
-        //TESTING
-
-        var fishers = new CampusInfo()
-        {
-            ID = -2,
-            Name = "Fishers",
-            AdultMembers = 1000,
-            TotalProjects = 20,
-            TotalVolunteers = 400,
-            TotalRemainingVolunteerCapacity = 100,            
-        };
-
-        _thermometerRenderStrings.Add(String.Format("renderThermometer('{0}', {1}, {2});{3}", fishers.Name.Replace(" ", ""), ((decimal)fishers.TotalVolunteers / fishers.AdultMembers)*100, fishers.AdultMembers, Environment.NewLine));
-
-        _activeCampuses.Add(fishers);
-
-        allNorthview.AdultMembers = 7673;
-        allNorthview.TotalProjects = 120;
-        allNorthview.TotalVolunteers = 2600;
-        allNorthview.TotalRemainingVolunteerCapacity = 1000;
-
-        //END TESTING
 
         _activeCampuses.Add(allNorthview);
         _thermometerRenderStrings.Add(String.Format("renderThermometer('{0}', {1}, {2});{3}", "AllNorthview", ((decimal)allNorthview.TotalVolunteers / allNorthview.AdultMembers)*100, allNorthview.AdultMembers, Environment.NewLine));

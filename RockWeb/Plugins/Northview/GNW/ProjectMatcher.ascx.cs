@@ -219,9 +219,7 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcher : Rock.Web.UI
 
         var groupSvc = new GroupService(rockCtx);
 
-        //var projectGroups = groupSvc.GetChildren(_parentProjectGroupId, 0, false, new List<int> { _projectGroupTypeId }, new List<int> { 0 }, false, false).ToList();
         var projectGroups = groupSvc.GetAllDescendents(_parentProjectGroupId).Where(x=> x.GroupTypeId == _projectGroupTypeId).ToList();
-        //var unmatchedVolunteerTeams = groupSvc.GetChildren(_parentTeamGroupId, 0, false, new List<int> { _teamGroupTypeId }, new List<int> { 0 }, false, false).ToList();
         var unmatchedVolunteerTeams = groupSvc.GetAllDescendents(_parentTeamGroupId).Where(x => x.GroupTypeId == _teamGroupTypeId).ToList();
 
         var attrSvc = new AttributeValueService(rockCtx);
