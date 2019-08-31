@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Rock;
 using Rock.Attribute;
 using Rock.Model;
 using RockWeb;
@@ -15,6 +16,7 @@ using us.northviewchurch.Model.GNW;
 [DisplayName("GNW Project Volunteer Matcher")]
 [Category("Northview > GNW")]
 [Description("Automatically matches volunteers to GNW projects")]
+[DecimalField("Max Driving Distance", "What's the farthest someone should have to drive (in miles)",true,45.0,key:"MaxDrivingDistance")]
 [IntegerField("Volunteer Parent Group ID","The ID of the Parent Group that contains volunteer groups", true, 0)]
 [IntegerField("Volunteer GroupType ID", "The ID of the GroupType that contains volunteer groups", true, 0)]
 [IntegerField("Project Parent Group ID", "The ID of the Parent Group that contains project groups", true, 0)]
@@ -96,9 +98,11 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcher : Rock.Web.UI
 
         }
 
+        var maxDistance = GetAttributeValue("MaxDrivingDistance").AsDouble();
+
         foreach (var team in _volunteerTeams)
         {
-            var potentialProjects = team.FindMatches(_partnerProjects);
+            var potentialProjects = team.FindMatches(_partnerProjects, maxDistance);
 
             if(potentialProjects.Any())
             {
@@ -168,6 +172,8 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcher : Rock.Web.UI
 
             if (unassignedNodes != null)
             {
+                _parentTeamGroupId = Int32.Parse(GetAttributeValue("VolunteerParentGroupID"));
+
                 foreach (var teamNode in unassignedNodes)
                 {
                     var projectId = _parentTeamGroupId;
@@ -175,11 +181,23 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcher : Rock.Web.UI
 
                     if (teamId != projectId)
                     {
-                        var teamRockGroup = groupSvc.Get(teamId);
+                       var teamRockGroup = groupSvc.Get(teamId);
 
-                        teamRockGroup.ParentGroupId = projectId;
+                        var campusGrp = groupSvc.Queryable().Where(x => x.ParentGroupId == _parentTeamGroupId && x.Name == teamRockGroup.Campus.Name).FirstOrDefault();
 
-                        rockCtx.SaveChanges();
+                        if(campusGrp != null)
+                        {
+                            teamRockGroup.ParentGroupId = campusGrp.Id;
+
+                            rockCtx.SaveChanges();
+                        }
+                        else
+                        {
+                            this.pnlErrorMessage.Visible = true;
+                            this.lblErrorText.Text = String.Format(@"Could not restore team to original group, please contact the administrator with the following info: 
+                                                                    Team GroupId: {0}, Team Campus: {1},Team Campus Id: {2}", teamRockGroup.Id, teamRockGroup.Campus.Name, teamRockGroup.CampusId);
+                        }
+                        
                     }
                 } 
             }
@@ -201,8 +219,10 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcher : Rock.Web.UI
 
         var groupSvc = new GroupService(rockCtx);
 
-        var projectGroups = groupSvc.GetChildren(_parentProjectGroupId, 0, false, new List<int> { _projectGroupTypeId }, new List<int> { 0 }, false, false).ToList();
-        var unmatchedVolunteerTeams = groupSvc.GetChildren(_parentTeamGroupId, 0, false, new List<int> { _teamGroupTypeId }, new List<int> { 0 }, false, false).ToList();
+        //var projectGroups = groupSvc.GetChildren(_parentProjectGroupId, 0, false, new List<int> { _projectGroupTypeId }, new List<int> { 0 }, false, false).ToList();
+        var projectGroups = groupSvc.GetAllDescendents(_parentProjectGroupId).Where(x=> x.GroupTypeId == _projectGroupTypeId).ToList();
+        //var unmatchedVolunteerTeams = groupSvc.GetChildren(_parentTeamGroupId, 0, false, new List<int> { _teamGroupTypeId }, new List<int> { 0 }, false, false).ToList();
+        var unmatchedVolunteerTeams = groupSvc.GetAllDescendents(_parentTeamGroupId).Where(x => x.GroupTypeId == _teamGroupTypeId).ToList();
 
         var attrSvc = new AttributeValueService(rockCtx);
 

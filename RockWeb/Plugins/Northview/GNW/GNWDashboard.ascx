@@ -110,9 +110,6 @@ tr.awesome {
     };
 
     $(document).ready(function () {
-        //renderThermometer('MainCampus', 39.6, 800);
-        //renderThermometer('Carmel', 19.6, 3800);
-        //renderThermometer('Anderson', 89.6, 1800);
 
         <%foreach(var cmd in this._thermometerRenderStrings)
         {%>

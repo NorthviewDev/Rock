@@ -6,3 +6,9 @@ us.northview/obj
 *.csproj
 RockWeb/Bin
 us.northview/bin
+RockWeb/App_Data/Logs/RockExceptions.csv
+RockWeb/App_Data/Logs/RockApplication.csv
+RockWeb/App_Data/Cache/id_84-maxwidth_200-maxheight_200.jpg
+RockWeb/App_Data/Cache/id_57-w_50.jpg
+RockWeb/App_Data/Logs/RockApplication.csv
+RockWeb/App_Data/Logs/RockExceptions.csv

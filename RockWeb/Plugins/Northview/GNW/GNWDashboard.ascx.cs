@@ -96,7 +96,7 @@ public partial class Plugins_Northview_GNW_GNWDashboard : Rock.Web.UI.RockBlock
             allNorthview.TotalVolunteers += volunteerCount;
             allNorthview.AdultMembers += memberCount;
 
-            //_thermometerRenderStrings.Add(String.Format("renderThermometer('{0}', {1}, {2});{3}", campus.Name.Replace(" ", ""), volunteerCount/memberCount, memberCount, Environment.NewLine));
+            //_thermometerRenderStrings.Add(String.Format("renderThermometer('{0}', {1}, {2});{3}", campus.Name.Replace(" ", ""), (volunteerCount/memberCount)*100, memberCount, Environment.NewLine));
 
             _thermometerRenderStrings.Add(String.Format("renderThermometer('{0}', {1}, {2});{3}",campus.Name.Replace(" ",""),new Random().Next(100,800)*.11,new Random().Next(750,2000), Environment.NewLine));
             
@@ -113,19 +113,19 @@ public partial class Plugins_Northview_GNW_GNWDashboard : Rock.Web.UI.RockBlock
             TotalRemainingVolunteerCapacity = 100,            
         };
 
-        _thermometerRenderStrings.Add(String.Format("renderThermometer('{0}', {1}, {2});{3}", fishers.Name.Replace(" ", ""), (decimal)fishers.TotalVolunteers / fishers.AdultMembers, fishers.AdultMembers, Environment.NewLine));
+        _thermometerRenderStrings.Add(String.Format("renderThermometer('{0}', {1}, {2});{3}", fishers.Name.Replace(" ", ""), ((decimal)fishers.TotalVolunteers / fishers.AdultMembers)*100, fishers.AdultMembers, Environment.NewLine));
 
         _activeCampuses.Add(fishers);
 
         allNorthview.AdultMembers = 7673;
         allNorthview.TotalProjects = 120;
-        allNorthview.TotalVolunteers = 600;
+        allNorthview.TotalVolunteers = 2600;
         allNorthview.TotalRemainingVolunteerCapacity = 1000;
 
         //END TESTING
 
         _activeCampuses.Add(allNorthview);
-        _thermometerRenderStrings.Add(String.Format("renderThermometer('{0}', {1}, {2});{3}", "AllNorthview", (decimal)allNorthview.TotalVolunteers / allNorthview.AdultMembers, allNorthview.AdultMembers, Environment.NewLine));
+        _thermometerRenderStrings.Add(String.Format("renderThermometer('{0}', {1}, {2});{3}", "AllNorthview", ((decimal)allNorthview.TotalVolunteers / allNorthview.AdultMembers)*100, allNorthview.AdultMembers, Environment.NewLine));
 
         _activeCampuses = _activeCampuses.OrderBy(x => x.Name).ToList();
 

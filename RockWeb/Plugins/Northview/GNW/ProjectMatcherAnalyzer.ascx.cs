@@ -60,7 +60,7 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcherAnalyzer : Roc
         var entityTypeSvc = new EntityTypeService(rockCtx);
         var personAliasSvc = new PersonAliasService(rockCtx);
 
-        var geoLocSvc = new GeoLocationService(new TestWebCaller());
+        var geoLocSvc = new GeoLocationService(new WebCaller());
         
         var longestDistance = 0.0;
         var unmatchedTeams = new List<VolunteerGroup>();
@@ -205,9 +205,6 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcherAnalyzer : Roc
 
         var projectGroups = groupSvc.Queryable().Where(x=> x.GroupTypeId == _projectGroupTypeId).ToList();
         var unmatchedVolunteerTeams = groupSvc.Queryable().Where(x => x.GroupTypeId == _teamGroupTypeId && x.ParentGroup.GroupTypeId != _projectGroupTypeId).ToList();
-
-        // var projectGroups = groupSvc.GetChildren(_parentProjectGroupId, 0, false, new List<int> { _projectGroupTypeId }, new List<int> { 0 }, false, false).ToList();
-        //var unmatchedVolunteerTeams = groupSvc.GetChildren(_parentTeamGroupId, 0, false, new List<int> { _teamGroupTypeId }, new List<int> { 0 }, false, false).ToList();
 
         var attrSvc = new AttributeValueService(rockCtx);
 

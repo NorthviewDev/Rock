@@ -28,10 +28,7 @@
 </style>
 
 <div class="row">
-    <asp:Button runat="server" OnClick="btnMatch_Click" CausesValidation="False" id="btnBatch" Text="AUTO-MATCH" class="btn btn-primary"></asp:Button>
-</div>
-<div class="row">
-    <div class="col-sm-3">
+    <div class="col-sm-3">       
         <div>
             <div class="col-sm-6">
                 <label>Volunteer Campus Filter</label>
@@ -42,23 +39,37 @@
                   <asp:DropDownList runat="server" ID="ddlProjectCampuses" ClientIDMode="Static" OnSelectedIndexChanged="ddlCampuses_SelectedIndexChanged" AutoPostBack="true"></asp:DropDownList>
             </div>
         </div>
+         <div class="col-sm-3" style="margin-top: 3em;">
+             <asp:Button runat="server" OnClick="btnMatch_Click" CausesValidation="False" id="btnBatch" Text="AUTO-MATCH" class="btn btn-primary"></asp:Button>
+        </div>
     </div>
     <div class="col-sm-4">
         <h2>Auto Match Results Log</h2>
         <textarea TextMode="MultiLine" Rows="10" id="txtResults" runat="server" style="width:100%;" ></textarea>
     </div>
     <div class="col-sm-3">
-        
+        <asp:Panel ID="pnlErrorMessage" ClientIDMode="Static" runat="server" Visible="false">
+            <div class="alert alert-danger" role="alert">
+              <asp:Label ID="lblErrorText" ClientIDMode="Static" runat="server"></asp:Label>
+            </div>
+        </asp:Panel>
     </div>
 </div>
 
 <div class="row" ng-app="matcherApp" ng-controller="ProjectMatcherCtrl">
     <script type="text/ng-template" id="nodes_renderer1.html">
   <div ui-tree-handle class="tree-node tree-node-content" data-nodetype="{{node.nodeType}}">
-    <a class="btn btn-success btn-xs" data-nodrag ng-click="toggle(this)"><span class="glyphicon" ng-class="{'glyphicon-chevron-right': collapsed, 'glyphicon-chevron-down': !collapsed}"></span></a>
-    {{node.title}}
-    <div class="btn btn-xs" ng-class="{1:'btn-danger', 2:'btn-warning', 3:'btn-success', 4:'btn-special'}[node.ability]" data-nodrag style="margin-left: 6em;"><i class="fa fa-dashboard" style="font-size: 1.5em;"></i></div>
-    <div class="btn btn-xs" ng-class="{1:'btn-success', 2:'btn-warning', 3:'btn-danger'}[node.familyFriendly]" data-nodrag  style="margin-right: 8px;"><i class="fa fa-group" style="font-size: 1.5em"></i></div>
+    <div class="col-sm-4">
+        <a class="btn btn-success btn-xs" data-nodrag ng-click="toggle(this)"><span class="glyphicon" ng-class="{'glyphicon-chevron-right': collapsed, 'glyphicon-chevron-down': !collapsed}"></span></a>
+        {{node.title}}
+    </div>
+    <div class="col-sm-3">
+        &nbsp;
+    </div>
+    <div class="col-sm-3">
+        <div class="btn btn-xs" ng-class="{1:'btn-danger', 2:'btn-warning', 3:'btn-success', 4:'btn-special'}[node.ability]" data-nodrag ><i class="fa fa-dashboard" style="font-size: 1.5em;"></i></div>
+        <div class="btn btn-xs" ng-class="{1:'btn-success', 2:'btn-warning', 3:'btn-danger'}[node.familyFriendly]" data-nodrag  ><i class="fa fa-group" style="font-size: 1.5em"></i></div>
+    </div>    
   </div>
   <ol ui-tree-nodes="" ng-model="node.nodes" ng-class="{hidden: collapsed}">
     <li ng-repeat="node in node.nodes" ui-tree-node ng-include="'nodes_renderer1.html'">
@@ -67,10 +78,17 @@
 </script>
 <script type="text/ng-template" id="nodes_renderer2.html">
   <div ui-tree-handle class="tree-node tree-node-content" data-nodetype="{{node.nodeType}}">
-    <a class="btn btn-success btn-xs" data-nodrag ng-click="toggle(this)"><span class="glyphicon" ng-class="{'glyphicon-chevron-right': collapsed, 'glyphicon-chevron-down': !collapsed}"></span></a>
-    {{node.title}}
-    <div class="btn btn-xs" ng-class="{1:'btn-danger', 2:'btn-warning', 3:'btn-success', 4:'btn-special'}[node.ability]" data-nodrag style="margin-left: 6em;" ><i class="fa fa-dashboard" style="font-size: 1.5em"></i></div>
-    <div class="btn btn-xs" ng-class="{1:'btn-success', 2:'btn-warning', 3:'btn-danger'}[node.familyFriendly]" data-nodrag  style="margin-right: 8px;"><i class="fa fa-group" style="font-size: 1.5em"></i></div>
+    <div class="col-sm-4">
+        <a class="btn btn-success btn-xs" data-nodrag ng-click="toggle(this)"><span class="glyphicon" ng-class="{'glyphicon-chevron-right': collapsed, 'glyphicon-chevron-down': !collapsed}"></span></a>
+        {{node.title}}
+    </div>
+    <div class="col-sm-3">
+        &nbsp;
+    </div>
+    <div class="col-sm-3">
+        <div class="btn btn-xs" ng-class="{1:'btn-danger', 2:'btn-warning', 3:'btn-success', 4:'btn-special'}[node.ability]" data-nodrag ><i class="fa fa-dashboard" style="font-size: 1.5em;"></i></div>
+        <div class="btn btn-xs" ng-class="{1:'btn-success', 2:'btn-warning', 3:'btn-danger'}[node.familyFriendly]" data-nodrag  ><i class="fa fa-group" style="font-size: 1.5em"></i></div>
+    </div>    
   </div>
   <ol ui-tree-nodes="" ng-model="node.nodes" ng-class="{hidden: collapsed}">
     <li ng-repeat="node in node.nodes" ui-tree-node ng-include="'nodes_renderer1.html'">
