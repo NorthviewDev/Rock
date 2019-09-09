@@ -1,5 +1,6 @@
 ﻿using Rock.Data;
 using Rock.Model;
+using RockWeb;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -82,11 +83,30 @@ namespace us.northviewchurch.Model.GNW
     }
 
     [Serializable]
-    public class ServingShift
+    public enum ServingShift
     {
-        public int ID { get; set; }
-        public DayOfWeek Day { get; set; }
-        public TimeSpan Time { get; set; }
+        [Description("Saturday Morning")]
+        SaturdayAM = 1,
+        [Description("Saturday Afternoon")]
+        SaturdayPM,
+        [Description("Sunday Morning")]
+        SundayAM
+    }
+
+    public static class ServingShiftExtensions
+    {
+        public static bool ContainsAny(this Dictionary<ServingShift, decimal> baseList, IEnumerable<ServingShift> list)
+        {
+            foreach(var val in list)
+            {
+                if(baseList.Keys.Contains(val))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 
     [Serializable]
@@ -106,19 +126,18 @@ namespace us.northviewchurch.Model.GNW
         public FamilyFriendlyType FamilyFriendliness { get; set; }
         public List<JobCategoryTypes> JobType { get; set; }
 
-        public List<ServingShift> Shifts { get; set; }
+        public Dictionary<ServingShift,decimal> Shifts { get; set; }
         public Tuple<decimal, decimal> Coordinates { get; set; }
 
         public List<VolunteerGroup> AssignedTeams { get; set; }
-
-        public decimal RemainingCapacity { get { return VolunteerCapacity - TotalVolunteers; } }
 
         public double DistanceToHome { get { return Distances.ContainsKey(_homeCampus) ? Distances[_homeCampus] : Double.MaxValue; } }
 
         public PartnerProject()
         {
-            this.Shifts = new List<ServingShift>();
+            this.Shifts = new Dictionary<ServingShift, decimal>();
             this.Distances = new Dictionary<string, double>();
+            this.AssignedTeams = new List<VolunteerGroup>();
         }
 
         public bool SetHomeCampus(string Campus)
@@ -209,9 +228,11 @@ namespace us.northviewchurch.Model.GNW
             return success;
         }
 
-        public static PartnerProject CreateFromRockGroup(Group RockGroup, Service<AttributeValue> AttrValueSvc)
+        public static ServiceResult<PartnerProject> CreateFromRockGroup(Group RockGroup, Service<AttributeValue> AttrValueSvc)
         {
             var proj = new PartnerProject();
+
+            var result = new ServiceResult<PartnerProject>();
 
             try
             {
@@ -222,6 +243,7 @@ namespace us.northviewchurch.Model.GNW
                 var abilityLevel = projAttrs.FirstOrDefault(x => x.AttributeKey == "AbilityLevel");
                 var famFriendly = projAttrs.FirstOrDefault(x => x.AttributeKey == "FamilyFriendly");
                 var campusDistances = projAttrs.FirstOrDefault(x => x.AttributeKey == "Distances");
+                var servingShifts = projAttrs.FirstOrDefault(x => x.AttributeKey == "Servingshifts");
 
                 var volCapDec = 0M;
 
@@ -234,6 +256,23 @@ namespace us.northviewchurch.Model.GNW
                     distances = ParseDistanceMatrixString(campusDistances.Value);
                 }
 
+                var shifts = new Dictionary<ServingShift, decimal>();
+
+                if(servingShifts != null)
+                {
+                    var shiftStrs = servingShifts.Value.Split(new char[] { ',' });
+
+                    foreach(var shiftStr in shiftStrs)
+                    {
+                        var shiftInt = 0;
+
+                        if(Int32.TryParse(shiftStr, out shiftInt))
+                        {
+                            shifts.Add((ServingShift)shiftInt, volCapDec);
+                        }
+                    }
+                }
+
                 proj = new PartnerProject
                 {
                     ID = RockGroup.Id,
@@ -243,15 +282,60 @@ namespace us.northviewchurch.Model.GNW
                     FamilyFriendliness = (FamilyFriendlyType)Enum.Parse(typeof(FamilyFriendlyType), famFriendly.Value),
                     VolunteerCapacity = volCapDec,
                     TotalVolunteers = RockGroup.Members.Count,
-                    Distances = distances
+                    Distances = distances,
+                    Shifts = shifts
                 };
+
+                result.ResponseObject = proj;
+
+                result.Success = true;
+
             }
             catch(Exception e)
             {
-
+                var msg = String.Format("Error mapping group {0}: {1}! \r\n Message: {2} \r\n Stack: {3}", RockGroup.Id, RockGroup.Name, e.Message, e.StackTrace);
+                result.Message = msg;
             }
 
-            return proj;
+            return result;
+        }
+
+        public bool HasServingCapacity(VolunteerGroup group)
+        {
+            var capacity = false;
+
+            foreach (var val in group.Shifts)
+            {
+                if (this.Shifts.Keys.Contains(val))
+                {
+                    if (this.Shifts[val] >= group.VolunteerCount)
+                    {
+                        capacity = true; 
+                    }
+                    else
+                    {
+                        capacity = false;
+                        break;
+                    }
+                }
+            }
+
+            return capacity;
+        }
+
+        public void AssignTeam(VolunteerGroup team)
+        {
+            this.TotalVolunteers += team.VolunteerCount;
+
+            foreach (var key in this.Shifts.Keys)
+            {
+                if (team.Shifts.Contains(key))
+                {
+                    this.Shifts[key] -= team.VolunteerCount;
+                } 
+            }
+
+            this.AssignedTeams.Add(team);
         }
 
         protected static Dictionary<string,double> ParseDistanceMatrixString(string DistanceMatrixStr)
@@ -298,34 +382,77 @@ namespace us.northviewchurch.Model.GNW
             this.Shifts = new List<ServingShift>();
         }
 
-        public static VolunteerGroup CreateFromRockGroup(Group RockGroup, Rock.Data.Service<AttributeValue> AttrValueSvc)
+        public static ServiceResult<VolunteerGroup> CreateFromRockGroup(Group RockGroup, Rock.Data.Service<AttributeValue> AttrValueSvc)
         {
-            var projAttrs = AttrValueSvc.Queryable().Where(t => (t.EntityId == RockGroup.Id || (RockGroup.Id == null && t.EntityId == null))).ToList();
+            var result = new ServiceResult<VolunteerGroup>();
 
-            var abilityLevel = projAttrs.FirstOrDefault(x => x.AttributeKey == "AbilityLevel");
-            var famFriendly = projAttrs.FirstOrDefault(x => x.AttributeKey == "FamilyFriendly");
-
-            var vg = new VolunteerGroup
+            try
             {
-                ID = RockGroup.Id,
-                Name = RockGroup.Name,
-                AbilityLevel = (AbilityLevelTypes)Enum.Parse(typeof(AbilityLevelTypes), abilityLevel.Value),
-                FamilyFriendliness = (FamilyFriendlyType)Enum.Parse(typeof(FamilyFriendlyType), famFriendly.Value),
-                VolunteerCount = RockGroup.Members.Count,
-                HomeCampus = RockGroup.Campus.Name
-            };
+                if(RockGroup == null || RockGroup.Id <1)
+                {
+                    result.Message = "RockGroup is null or Id is invalid";
+                }
+                else
+                {
+                    var projAttrs = AttrValueSvc.Queryable().Where(t => (t.EntityId == RockGroup.Id || (RockGroup.Id == null && t.EntityId == null))).ToList();
 
-            return vg;
+                    var abilityLevel = projAttrs.FirstOrDefault(x => x.AttributeKey == "AbilityLevel");
+                    var famFriendly = projAttrs.FirstOrDefault(x => x.AttributeKey == "FamilyFriendly");
+                    var servingShifts = projAttrs.FirstOrDefault(x => x.AttributeKey == "Servingshifts");
+
+                    var shifts = new List<ServingShift>();
+
+                    if (servingShifts != null)
+                    {
+                        var shiftStrs = servingShifts.Value.Split(new char[] { ',' });
+
+                        foreach (var shiftStr in shiftStrs)
+                        {
+                            var shiftInt = 0;
+
+                            if (Int32.TryParse(shiftStr, out shiftInt))
+                            {
+                                shifts.Add((ServingShift)shiftInt);
+                            }
+                        }
+                    }
+
+                    var vg = new VolunteerGroup
+                    {
+                        ID = RockGroup.Id,
+                        Name = RockGroup.Name,
+                        AbilityLevel = (AbilityLevelTypes)Enum.Parse(typeof(AbilityLevelTypes), abilityLevel.Value),
+                        FamilyFriendliness = (FamilyFriendlyType)Enum.Parse(typeof(FamilyFriendlyType), famFriendly.Value),
+                        VolunteerCount = RockGroup.Members.Count,
+                        HomeCampus = RockGroup.Campus.Name,
+                        Shifts = shifts
+                    };
+
+                    result.Success = true;
+                    result.ResponseObject = vg;
+                }
+               
+            }
+            catch (Exception e)
+            {
+                var msg = String.Format("Error mapping group {0}: {1}! \r\n Message: {2} \r\n Stack: {3}", RockGroup.Id, RockGroup.Name, e.Message,e.StackTrace);
+                result.Message = msg;
+            }
+
+            return result;
         }
 
         public List<PartnerProject> FindMatches(List<PartnerProject> Projects, double MaxDistance = Double.MaxValue)
         {
-            var potentials = Projects.Where(x => x.SetHomeCampus(this.HomeCampus) &&  x.DistanceToHome < MaxDistance && x.AbilityLevel >= this.AbilityLevel 
-                                            && x.FamilyFriendliness <= this.FamilyFriendliness && (x.RemainingCapacity >= this.VolunteerCount))
-                                        .OrderByDescending(x => x.FamilyFriendliness)
-                                        .ThenBy(x => x.AbilityLevel)
-                                        .ThenBy(x => x.DistanceToHome)
-                                        .ToList();
+            var potentials = Projects.Where(x => x.SetHomeCampus(this.HomeCampus) 
+                            &&  x.DistanceToHome < MaxDistance 
+                            && x.AbilityLevel >= this.AbilityLevel 
+                            && x.FamilyFriendliness <= this.FamilyFriendliness 
+                            && x.HasServingCapacity(this))
+                                .OrderByDescending(x => x.FamilyFriendliness)
+                                .ThenBy(x => x.AbilityLevel)
+                                .ThenBy(x => x.DistanceToHome)
+                                .ToList();
 
             return potentials;
         }

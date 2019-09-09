@@ -50,7 +50,7 @@
     <div class="col-sm-3">
         <asp:Panel ID="pnlErrorMessage" ClientIDMode="Static" runat="server" Visible="false">
             <div class="alert alert-danger" role="alert">
-              <asp:Label ID="lblErrorText" ClientIDMode="Static" runat="server"></asp:Label>
+               <textarea TextMode="MultiLine" Rows="10" id="txtError" runat="server" style="width:100%;" ></textarea>
             </div>
         </asp:Panel>
     </div>

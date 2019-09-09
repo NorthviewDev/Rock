@@ -1,4 +1,7 @@
 ﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="GNWDashboard.ascx.cs" Inherits="Plugins_Northview_GNW_GNWDashboard" %>
+<%@ Import Namespace="us.northviewchurch.Model.GNW" %> 
+<%@ Import Namespace="RockWeb" %> 
+
 <script src="/Scripts/d3-cloud/d3.min.js"></script>
 <script src="/Scripts/GNW/2019/Dashboard/dashboard.js"></script>
 <script src="/Scripts/GNW/2019/Dashboard/stupidtable.js"></script>
@@ -125,7 +128,7 @@ tr.awesome {
         { %>
             $('.nav-tabs a:first').tab('show');
         <% } else { %>
-            $('.nav-tabs a[href="#info-<%= this._displayMode %>"]').tab('show');
+            $('.nav-tabs a[href="#info-<% Response.Write(this._displayMode); %>"]').tab('show');
         <% }%>
 
        
@@ -147,15 +150,21 @@ tr.awesome {
 </script>
 
 <h2>Good Neighbor Weekend Dashboard</h2>
- <ul class="nav nav-tabs" id="ulTabContainer" runat="server" >  
+<div style="overflow-x:scroll;">
+    <% var ulWidth =   this._activeCampuses.Count * 200;   %>
+ <ul class="nav nav-tabs" id="ulTabContainer" style="width: <% Response.Write(ulWidth); %>>px;"  >
      <% foreach (var campus in this._activeCampuses)
       {
          var trimmedName = campus.Name.Replace(" ", "");
     %>
-        <li><a data-toggle="tab" data-campusid="<%= campus.ID %>" href="#info-<%= trimmedName %>"><h3><%= campus.Name %></h3><span id="thermo-<%= trimmedName %>"></span></a></li>
+        <li><a data-toggle="tab" data-campusid="<% Response.Write(campus.ID); %>" href="#info-<% Response.Write(trimmedName); %>"><h3><% Response.Write(campus.Name); %></h3><span id="thermo-<% Response.Write(trimmedName); %>"></span></a></li>
      <% } %>
 
   </ul>
+</div>
+<div style="display:none;">
+    <textarea TextMode="MultiLine" Rows="10" id="txtDebugLog" runat="server" style="width:100%;" ></textarea>
+</div>
 
   <div class="tab-content" id="divContentContainer" runat="server">  
      <% foreach (var campus in this._activeCampuses)
@@ -163,18 +172,18 @@ tr.awesome {
              var trimmedName = campus.Name.Replace(" ", "");
              var displayName = String.Format("Data For {0}{1} {2}", campus.ID == -1 ? "" : "The ", campus.Name, campus.ID == -1 ? "" : "Campus" );
     %>
-         <div id="info-<%= trimmedName %>" data-campusid="<%= campus.ID %>" class="tab-pane fade">
-              <h3><%= displayName %></h3>
+         <div id="info-<% Response.Write(trimmedName); %>" data-campusid="<% Response.Write(campus.ID); %>" class="tab-pane fade">
+              <h3><% Response.Write(displayName); %></h3>
               <div>
                   <div class="col-sm-2">
                        <div class="projects">
-                            <p class="counter-count"><%= campus.TotalProjects %></p>
+                            <p class="counter-count"><% Response.Write(campus.TotalProjects); %></p>
                             <p class="projects-p">Projects</p>
                         </div>
                   </div>
                    <div class="col-sm-2">
                        <div class="volunteers">
-                            <p class="counter-count"><%= campus.TotalVolunteers %></p>
+                            <p class="counter-count"><% Response.Write(campus.TotalVolunteers); %></p>
                             <p class="volunteers-p">Total Volunteers</p>
                         </div>
                   </div>
@@ -192,7 +201,7 @@ tr.awesome {
                                      addtlClass = "counter-count-crt";
                                 }
                             %>
-                            <p class="counter-count <%= addtlClass %>"><%= campus.TotalRemainingVolunteerCapacity %></p>
+                            <p class="counter-count <% Response.Write(addtlClass); %>"><% Response.Write(campus.TotalRemainingVolunteerCapacity); %></p>
                             <p class="needed-volunteers-p">Volunteers Needed</p>
                         </div>
                   </div>
@@ -212,17 +221,36 @@ tr.awesome {
                                     <th data-sort="string">Name</th>
                                     <th data-sort="int">Max Capacity</th>
                                     <th data-sort="int">Volunteers</th>
-                                    <th data-sort="int">Needed</th>
+                                    <% foreach(var shift in Enum.GetValues(typeof(ServingShift))) 
+                                        { %>
+                                            <th data-sort="int">Needed <% Response.Write(((ServingShift)shift).DescriptionAttr());%></th>
+                                        <%}
+                                        %>
+                                    
                                 </tr>
                             </thead>
                             <tbody>
                                 <% foreach (var project in campus.Projects)
                                 { %>
                                     <tr>                                    
-                                        <td><a href="<%= String.Format("/{0}?GroupId={1}", this._detailsUrl,project.ID.ToString()) %>" ><%= project.Name %></a></td>
+                                        <td><a href="<% Response.Write(String.Format("/{0}?GroupId={1}", this._detailsUrl, project.ID.ToString())); %>" ><% Response.Write(project.Name); %></a></td>
                                         <td><%= project.VolunteerCapacity %></td>
                                         <td><%= project.TotalVolunteers %></td>
-                                        <td><%= project.RemainingCapacity %></td>
+                                         <% foreach(var shiftVal in Enum.GetValues(typeof(ServingShift)))
+                                             {
+                                                 var shift = (ServingShift)shiftVal;
+                                                 if (project.Shifts.ContainsKey(shift))
+                                                 { %>
+                                                     <td><% Response.Write(project.Shifts[shift]);  %></td>
+                                                <% }
+                                                else
+                                                { %>
+                                                    <td> 0</td>
+                                              <%  }
+                                        %>
+                                           
+                                        <%}
+                                        %>
                                      </tr>
                                <% }  %>
                   

@@ -75,12 +75,44 @@ public partial class Plugins_Northview_GNW_GNWDashboard : Rock.Web.UI.RockBlock
         {
             var memberCount = adults.Where(x=> x.GetCampus() != null && x.GetCampus().Id == campus.ID).Count();
 
-            var campusVolunteers = groupSvc.Queryable().Where(x => x.GroupTypeId == _teamGroupTypeId && x.CampusId == campus.ID).ToList().Select(x => VolunteerGroup.CreateFromRockGroup(x, attrSvc)).ToList();
+            var campusVolunteerGroups = groupSvc.Queryable().Where(x => x.GroupTypeId == _teamGroupTypeId && x.CampusId == campus.ID).ToList();
 
-            var campusProjects = groupSvc.Queryable().Where(x => x.GroupTypeId == _projectGroupTypeId && x.CampusId == campus.ID).ToList().Select(x => PartnerProject.CreateFromRockGroup(x, attrSvc)).ToList();
+            var campusVolunteers = new List<VolunteerGroup>();
+
+            foreach(var cvg in campusVolunteerGroups)
+            {
+                var volResult = VolunteerGroup.CreateFromRockGroup(cvg, attrSvc);
+
+                if(volResult.Success)
+                {
+                    campusVolunteers.Add(volResult.ResponseObject);
+                }
+                else
+                {
+                    txtDebugLog.InnerText += volResult.Message;
+                }
+            }
+
+            var campusProjectsGroups = groupSvc.Queryable().Where(x => x.GroupTypeId == _projectGroupTypeId && x.CampusId == campus.ID).ToList();
+
+            var campusProjects = new List<PartnerProject>();
+
+            foreach (var cpg in campusProjectsGroups)
+            {
+                var projResult = PartnerProject.CreateFromRockGroup(cpg, attrSvc);
+
+                if (projResult.Success)
+                {
+                    campusProjects.Add(projResult.ResponseObject);
+                }
+                else
+                {
+                    txtDebugLog.InnerText += projResult.Message;
+                }
+            }
 
             var volunteerCount = campusVolunteers.Sum(x => x.VolunteerCount);
-            var projectCapacity = campusProjects.Sum(x => x.RemainingCapacity);
+            var projectCapacity = campusProjects.Sum(x => x.Shifts.Values.Sum());
 
             campus.TotalProjects = campusProjects.Count;
             campus.Projects = campusProjects;
@@ -96,7 +128,9 @@ public partial class Plugins_Northview_GNW_GNWDashboard : Rock.Web.UI.RockBlock
             allNorthview.TotalVolunteers += volunteerCount;
             allNorthview.AdultMembers += memberCount;
 
-            _thermometerRenderStrings.Add(String.Format("renderThermometer('{0}', {1}, {2});{3}", campus.Name.Replace(" ", ""), (volunteerCount/memberCount)*100, memberCount, Environment.NewLine));
+            var attendeeRatio = memberCount == 0 ? 0M : (((decimal)volunteerCount) / memberCount) * 100;
+
+            _thermometerRenderStrings.Add(String.Format("renderThermometer('{0}', {1}, {2});{3}", campus.Name.Replace(" ", ""), attendeeRatio, memberCount, Environment.NewLine));
             
         }
 

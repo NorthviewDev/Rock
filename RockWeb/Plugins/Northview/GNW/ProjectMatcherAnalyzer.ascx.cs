@@ -107,7 +107,7 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcherAnalyzer : Roc
 
                 if(!success)
                 {
-                    this.txtLog.Value += msg;
+                    this.txtLog.InnerHtml += msg;
                 }
             }
 
@@ -125,7 +125,7 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcherAnalyzer : Roc
             {
                 var proj = potentialProjects.First();
 
-                proj.TotalVolunteers += team.VolunteerCount;
+                proj.AssignTeam(team);
 
                 var projectId = proj.ID;
                 var teamId = team.ID;
@@ -154,7 +154,14 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcherAnalyzer : Roc
                     lastDist = warning;
                 }
 
-                this.txtResults.InnerText += String.Format("Proj {0} Assigned Team {1}: Remaining {2}{3}", proj.Name, team.Name, proj.RemainingCapacity, Environment.NewLine);
+                var capacityStr = new StringBuilder();
+
+                foreach (var key in proj.Shifts.Keys)
+                {
+                    capacityStr.AppendLine(String.Format("{0}:{1}", key.DescriptionAttr(), proj.Shifts[key]));
+                }
+
+                this.txtResults.Value += String.Format("Proj {0} Assigned Team {1}:  {2} Remaining {3}", proj.Name, team.Name, Environment.NewLine, capacityStr.ToString());
             }
             else
             {
@@ -164,7 +171,7 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcherAnalyzer : Roc
 
         //Compile some stats!
         unmatchedProjects = this._partnerProjects.Where(x=> x.TotalVolunteers == 0).ToList();
-        fullProjects = this._partnerProjects.Where(x => x.RemainingCapacity == 0).ToList();
+        fullProjects = this._partnerProjects.Where(x => x.Shifts.Values.Sum() == 0).ToList();
         averageVolunteerCount = this._partnerProjects.Sum(x => x.TotalVolunteers) / this._partnerProjects.Count;
 
         var stats = new StringBuilder();
@@ -189,7 +196,7 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcherAnalyzer : Roc
             }
         }
 
-        this.txtResults.Value = stats.ToString();
+        this.txtLog.InnerText = stats.ToString();
 
     }
 
@@ -223,22 +230,55 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcherAnalyzer : Roc
 
         foreach (var projGrp in projectGroups)
         {
-            var partnerProj = PartnerProject.CreateFromRockGroup(projGrp, attrSvc);
+            var partnerProjResult = PartnerProject.CreateFromRockGroup(projGrp, attrSvc);
 
-            var matchedTeams = groupSvc.GetChildren(partnerProj.ID, 0, false, new List<int> { _teamGroupTypeId }, new List<int> { 0 }, false, false).ToList();
+            PartnerProject partnerProj = null;
 
-            var groups = matchedTeams.Select(x => VolunteerGroup.CreateFromRockGroup(x, attrSvc)).ToList();
+            if (partnerProjResult.Success)
+            {
 
-            partnerProj.AssignedTeams = groups;
+                partnerProj = partnerProjResult.ResponseObject;
 
-            _partnerProjects.Add(partnerProj);
+                var matchedTeams = groupSvc.GetChildren(partnerProj.ID, 0, false, new List<int> { _teamGroupTypeId }, new List<int> { 0 }, false, false).ToList();
+
+                foreach (var grp in matchedTeams)
+                {
+                    var result = VolunteerGroup.CreateFromRockGroup(grp, attrSvc);
+
+                    if (result.Success)
+                    {
+                        partnerProj.AssignTeam(result.ResponseObject);
+                    }
+                    else
+                    {
+                        this.txtLog.InnerText += result.Message;
+                    }
+                }
+
+                _partnerProjects.Add(partnerProj); 
+            }
+            else
+            {
+                this.txtLog.InnerHtml += partnerProjResult.Message;
+            }
         }
 
         foreach (var volTeam in unmatchedVolunteerTeams)
         {
-            var volunteerGrp = VolunteerGroup.CreateFromRockGroup(volTeam, attrSvc);
+            var volunteerGrpResult = VolunteerGroup.CreateFromRockGroup(volTeam, attrSvc);
 
-            _volunteerTeams.Add(volunteerGrp);
+            if (volunteerGrpResult.Success)
+            {
+                _volunteerTeams.Add(volunteerGrpResult.ResponseObject);
+
+                var teamNode = Node.GetNodesFromVolunteerGroup(volunteerGrpResult.ResponseObject);
+
+                teamNodes.Add(teamNode);
+            }
+            else
+            {
+                this.txtLog.InnerText += volunteerGrpResult.Message;
+            }
         }
     }
 
