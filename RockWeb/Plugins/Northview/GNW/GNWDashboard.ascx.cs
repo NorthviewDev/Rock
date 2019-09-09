@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using Rock;
+﻿using Rock;
 using Rock.Attribute;
 using Rock.Model;
 using System;

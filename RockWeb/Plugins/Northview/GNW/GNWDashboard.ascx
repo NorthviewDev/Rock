@@ -4,7 +4,7 @@
 
 <script src="/Scripts/d3-cloud/d3.min.js"></script>
 <script src="/Scripts/GNW/2019/Dashboard/dashboard.js"></script>
-<script src="/Scripts/GNW/2019/Dashboard/stupidtable.js"></script>
+<script src="/Scripts/stupidtable.js"></script>
 <asp:PlaceHolder ID="placeHldrNodesJS" runat="server" />
 
 <style>
