@@ -30,6 +30,17 @@ public partial class Plugins_Northview_GNW_GNWDashboard : Rock.Web.UI.RockBlock
 
     protected string _displayMode = "All";
 
+    protected Dictionary<string, int> CampusGoals = new Dictionary<string, int>()
+    {
+        {"Anderson",601},
+        {"Binford",288},
+        {"Carmel",3854},
+        {"Fishers",824},
+        {"GreaterLafeyette",587},
+        {"Kokomo",246},
+        {"Westfield",599},
+    };
+
     protected void Page_Load(object sender, EventArgs e)
     {
         loadGroupData();
@@ -55,84 +66,113 @@ public partial class Plugins_Northview_GNW_GNWDashboard : Rock.Web.UI.RockBlock
         var personSvc = new PersonService(rockCtx);
         var attrSvc = new AttributeValueService(rockCtx);
 
-        if(String.IsNullOrWhiteSpace(this._displayMode) || this._displayMode == "All")
+        var refreshRate = 120 * 1000;
+
+        if (String.IsNullOrWhiteSpace(this._displayMode) || this._displayMode == "All")
         {
             _activeCampuses = campusSvc.Queryable().Where(x => x.IsActive ?? false).ToList().Select(x => new CampusInfo(x.Id, x.Name)).ToList();
         }
         else
         {
             _activeCampuses = campusSvc.Queryable().Where(x => x.Name == this._displayMode).ToList().Select(x => new CampusInfo(x.Id, x.Name)).ToList();
+            refreshRate = 30 * 1000;
         }
 
         var campusDataStrings = new List<string>();
 
-        var adults = personSvc.Queryable().ToList().Where(x => x.Age.HasValue && x.Age >= 18).ToList();
+        //var adults = personSvc.Queryable().ToList().Where(x => x.Age.HasValue && x.Age >= 18).ToList();
 
         var allNorthview = new CampusInfo(-1, "All Northview");
 
         foreach (var campus in _activeCampuses)
-        {
-            var memberCount = adults.Where(x=> x.GetCampus() != null && x.GetCampus().Id == campus.ID).Count();
-
-            var campusVolunteerGroups = groupSvc.Queryable().Where(x => x.GroupTypeId == _teamGroupTypeId && x.CampusId == campus.ID).ToList();
-
-            var campusVolunteers = new List<VolunteerGroup>();
-
-            foreach(var cvg in campusVolunteerGroups)
+        {   
+            if (CampusGoals.ContainsKey(campus.Name))
             {
-                var volResult = VolunteerGroup.CreateFromRockGroup(cvg, attrSvc);
+                campus.Included = true;
 
-                if(volResult.Success)
+                var memberCount = CampusGoals[campus.Name];//adults.Where(x=> x.GetCampus() != null && x.GetCampus().Id == campus.ID).Count();
+
+                var campusVolunteerGroups = groupSvc.Queryable().Where(x => x.GroupTypeId == _teamGroupTypeId && x.CampusId == campus.ID).ToList();
+
+                var campusVolunteers = new List<VolunteerGroup>();
+
+                foreach (var cvg in campusVolunteerGroups)
                 {
-                    campusVolunteers.Add(volResult.ResponseObject);
+                    var volResult = VolunteerGroup.CreateFromRockGroup(cvg, attrSvc);
+
+                    if (volResult.Success)
+                    {
+                        campusVolunteers.Add(volResult.ResponseObject);
+                    }
+                    else
+                    {
+                        txtDebugLog.InnerText += volResult.Message;
+                    }
                 }
-                else
+
+                var campusProjectsGroups = groupSvc.Queryable().Where(x => x.GroupTypeId == _projectGroupTypeId && x.CampusId == campus.ID).ToList();
+
+                var campusProjects = new List<PartnerProject>();
+
+                foreach (var cpg in campusProjectsGroups)
                 {
-                    txtDebugLog.InnerText += volResult.Message;
+                    var projResult = PartnerProject.CreateFromRockGroup(cpg, attrSvc);
+
+                    if (projResult.Success)
+                    {
+
+                        var partnerProj = projResult.ResponseObject;
+
+                        var matchedTeams = groupSvc.GetChildren(partnerProj.ID, 0, false, new List<int> { _teamGroupTypeId }, new List<int> { 0 }, false, false).ToList();
+
+                        foreach (var grp in matchedTeams)
+                        {
+                            var result = VolunteerGroup.CreateFromRockGroup(grp, attrSvc);
+
+                            if (result.Success)
+                            {
+                                partnerProj.AssignTeam(result.ResponseObject);
+                            }
+                            else
+                            {
+                                txtDebugLog.InnerText += result.Message;
+                            }
+                        }
+
+                        campusProjects.Add(partnerProj);
+                    }
+                    else
+                    {
+                        txtDebugLog.InnerText += projResult.Message;
+                    }
                 }
+
+                var volunteerCount = campusVolunteers.Sum(x => x.VolunteerCount);
+                var projectCapacity = campusProjects.Sum(x => x.Shifts.Values.Sum());
+
+                campus.TotalProjects = campusProjects.Count;
+                campus.Projects = campusProjects;
+
+                campus.TotalRemainingVolunteerCapacity = projectCapacity;
+                campus.TotalVolunteers = volunteerCount;
+                campus.AdultMembers = memberCount;
+
+                allNorthview.TotalProjects += campusProjects.Count;
+                allNorthview.Projects.AddRange(campusProjects);
+
+                allNorthview.TotalRemainingVolunteerCapacity += projectCapacity;
+                allNorthview.TotalVolunteers += volunteerCount;
+                allNorthview.AdultMembers += memberCount;
+
+                var attendeeRatio = memberCount == 0 ? 0M : (((decimal)volunteerCount) / memberCount) * 100;
+
+
+                _thermometerRenderStrings.Add(String.Format("renderThermometer('{0}', {1}, {2});{3}", campus.Name.Replace(" ", ""), attendeeRatio, memberCount, Environment.NewLine)); 
             }
-
-            var campusProjectsGroups = groupSvc.Queryable().Where(x => x.GroupTypeId == _projectGroupTypeId && x.CampusId == campus.ID).ToList();
-
-            var campusProjects = new List<PartnerProject>();
-
-            foreach (var cpg in campusProjectsGroups)
-            {
-                var projResult = PartnerProject.CreateFromRockGroup(cpg, attrSvc);
-
-                if (projResult.Success)
-                {
-                    campusProjects.Add(projResult.ResponseObject);
-                }
-                else
-                {
-                    txtDebugLog.InnerText += projResult.Message;
-                }
-            }
-
-            var volunteerCount = campusVolunteers.Sum(x => x.VolunteerCount);
-            var projectCapacity = campusProjects.Sum(x => x.Shifts.Values.Sum());
-
-            campus.TotalProjects = campusProjects.Count;
-            campus.Projects = campusProjects;
-
-            campus.TotalRemainingVolunteerCapacity = projectCapacity;
-            campus.TotalVolunteers = volunteerCount;
-            campus.AdultMembers = memberCount;
-
-            allNorthview.TotalProjects += campusProjects.Count;
-            allNorthview.Projects.AddRange(campusProjects);
-
-            allNorthview.TotalRemainingVolunteerCapacity += projectCapacity;
-            allNorthview.TotalVolunteers += volunteerCount;
-            allNorthview.AdultMembers += memberCount;
-
-            var attendeeRatio = memberCount == 0 ? 0M : (((decimal)volunteerCount) / memberCount) * 100;
-
-            _thermometerRenderStrings.Add(String.Format("renderThermometer('{0}', {1}, {2});{3}", campus.Name.Replace(" ", ""), attendeeRatio, memberCount, Environment.NewLine));
             
         }
 
+        allNorthview.Included = true;
         _activeCampuses.Add(allNorthview);
         _thermometerRenderStrings.Add(String.Format("renderThermometer('{0}', {1}, {2});{3}", "AllNorthview", ((decimal)allNorthview.TotalVolunteers / allNorthview.AdultMembers)*100, allNorthview.AdultMembers, Environment.NewLine));
 
@@ -143,7 +183,8 @@ public partial class Plugins_Northview_GNW_GNWDashboard : Rock.Web.UI.RockBlock
         var sb = new StringBuilder();
         sb.Append(String.Format(@"
         var campusData = [{0}];
-        ", String.Join(",", campusDataStrings)));
+        var pageRefreshRate = {1};
+        ", String.Join(",", campusDataStrings), refreshRate));
 
         //create script control
         var objScript = new HtmlGenericControl("script");
@@ -167,6 +208,7 @@ public class CampusInfo
     public decimal TotalRequiredVolunteers { get { return this.TotalVolunteers + this.TotalRemainingVolunteerCapacity; } }
     public int AdultMembers { get; set; }
     public List<PartnerProject> Projects { get; set; }
+    public bool Included { get; set; }
 
     public CampusInfo()
     {

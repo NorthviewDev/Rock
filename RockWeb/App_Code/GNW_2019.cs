@@ -118,6 +118,7 @@ namespace us.northviewchurch.Model.GNW
         public decimal VolunteerCapacity { get; set; }
         public decimal TotalVolunteers { get; set; }
         public string OrgAddress { get; set; }
+        public string ProjectAddress { get; set; }
         public string Name { get; set; }
         public Dictionary<string,double> Distances { get; set; }
 
@@ -132,6 +133,9 @@ namespace us.northviewchurch.Model.GNW
         public List<VolunteerGroup> AssignedTeams { get; set; }
 
         public double DistanceToHome { get { return Distances.ContainsKey(_homeCampus) ? Distances[_homeCampus] : Double.MaxValue; } }
+
+        public int GroupTypeId { get; set; }
+        public int GroupEntityTypeId { get; set; }
 
         public PartnerProject()
         {
@@ -153,7 +157,7 @@ namespace us.northviewchurch.Model.GNW
 
         public bool CreateDistancesAttribute(DbContext RockCtx,Service<AttributeValue> AttrValueSvc, 
                                             Service<Attribute> AttrSvc, Service<FieldType> FieldTypeSvc, 
-                                            Service<EntityType> EntityTypeSvc, int TextFieldTypeId, int GroupEntityTypeId,
+                                            Service<EntityType> EntityTypeSvc, int TextFieldTypeId, 
                                             Dictionary<string,double> DistanceMatrix, out string message)
         {
             var success = false;
@@ -185,14 +189,16 @@ namespace us.northviewchurch.Model.GNW
                 if (distAttr == null)
                 {
                     var textFieldType = FieldTypeSvc.Get(TextFieldTypeId);
-                    var groupEntityType = EntityTypeSvc.Get(16);
+                    var groupEntityType = EntityTypeSvc.Get(this.GroupEntityTypeId);
 
                     distAttr = new Rock.Model.Attribute()
                     {
                         Name = "Distances",
                         Key = "Distances",
                         FieldType = textFieldType,
-                        EntityType = groupEntityType
+                        EntityType = groupEntityType,
+                        EntityTypeQualifierColumn = this.GroupTypeId.ToString(),
+                        IsActive = true
                     };
 
                     AttrSvc.Add(distAttr);
@@ -204,6 +210,7 @@ namespace us.northviewchurch.Model.GNW
                     distAttrValue = new Rock.Model.AttributeValue()
                     {
                         Attribute = distAttr,
+                        AttributeId = distAttr.Id,
                         Value = distMatrixStr,
                         EntityId = this.ID
                     };
@@ -239,6 +246,7 @@ namespace us.northviewchurch.Model.GNW
                 var projAttrs = AttrValueSvc.Queryable().Where(t => (t.EntityId == RockGroup.Id || (RockGroup.Id == null && t.EntityId == null))).ToList();
 
                 var orgAddr = projAttrs.FirstOrDefault(x => x.AttributeKey == "OrganizationAddress");
+                var projAddr = projAttrs.FirstOrDefault(x => x.AttributeKey == "ProjectAddress");
                 var volCap = projAttrs.FirstOrDefault(x => x.AttributeKey == "VolunteerCapacity");
                 var abilityLevel = projAttrs.FirstOrDefault(x => x.AttributeKey == "AbilityLevel");
                 var famFriendly = projAttrs.FirstOrDefault(x => x.AttributeKey == "FamilyFriendly");
@@ -277,13 +285,16 @@ namespace us.northviewchurch.Model.GNW
                 {
                     ID = RockGroup.Id,
                     Name = RockGroup.Name,
-                    OrgAddress = orgAddr == null ? "" : orgAddr.Value,
+                    OrgAddress = orgAddr == null ? "" : orgAddr.ValueFormatted,
+                    ProjectAddress = projAddr == null ? "" : projAddr.ValueFormatted,
                     AbilityLevel = (AbilityLevelTypes)Enum.Parse(typeof(AbilityLevelTypes), abilityLevel.Value),
                     FamilyFriendliness = (FamilyFriendlyType)Enum.Parse(typeof(FamilyFriendlyType), famFriendly.Value),
                     VolunteerCapacity = volCapDec,
                     TotalVolunteers = RockGroup.Members.Count,
                     Distances = distances,
-                    Shifts = shifts
+                    Shifts = shifts,
+                    GroupTypeId = RockGroup.GroupTypeId,
+                    GroupEntityTypeId = RockGroup.TypeId
                 };
 
                 result.ResponseObject = proj;
@@ -327,7 +338,9 @@ namespace us.northviewchurch.Model.GNW
         {
             this.TotalVolunteers += team.VolunteerCount;
 
-            foreach (var key in this.Shifts.Keys)
+            var keys = this.Shifts.Keys.ToList();
+
+            foreach (var key in keys)
             {
                 if (team.Shifts.Contains(key))
                 {
@@ -366,6 +379,14 @@ namespace us.northviewchurch.Model.GNW
     }
 
     [Serializable]
+    public enum LifeGroupTypes
+    {
+        Unknown,
+        LifeGroup,
+        Individiual
+    }
+
+    [Serializable]
     public class VolunteerGroup
     {
         public int ID { get; set; }
@@ -376,6 +397,7 @@ namespace us.northviewchurch.Model.GNW
         public List<ServingShift> Shifts { get; set; }
         public Tuple<decimal, decimal> HomeChurchCoordinates { get; set; }
         public string HomeCampus { get; set; }
+        public LifeGroupTypes LifeGroupType { get; set; }
 
         public VolunteerGroup()
         {
@@ -399,6 +421,7 @@ namespace us.northviewchurch.Model.GNW
                     var abilityLevel = projAttrs.FirstOrDefault(x => x.AttributeKey == "AbilityLevel");
                     var famFriendly = projAttrs.FirstOrDefault(x => x.AttributeKey == "FamilyFriendly");
                     var servingShifts = projAttrs.FirstOrDefault(x => x.AttributeKey == "Servingshifts");
+                    var source = projAttrs.FirstOrDefault(x => x.AttributeKey == "Source");
 
                     var shifts = new List<ServingShift>();
 
@@ -425,7 +448,8 @@ namespace us.northviewchurch.Model.GNW
                         FamilyFriendliness = (FamilyFriendlyType)Enum.Parse(typeof(FamilyFriendlyType), famFriendly.Value),
                         VolunteerCount = RockGroup.Members.Count,
                         HomeCampus = RockGroup.Campus.Name,
-                        Shifts = shifts
+                        Shifts = shifts,
+                        LifeGroupType = (LifeGroupTypes)Enum.Parse(typeof(LifeGroupTypes), source.Value)
                     };
 
                     result.Success = true;
@@ -445,13 +469,14 @@ namespace us.northviewchurch.Model.GNW
         public List<PartnerProject> FindMatches(List<PartnerProject> Projects, double MaxDistance = Double.MaxValue)
         {
             var potentials = Projects.Where(x => x.SetHomeCampus(this.HomeCampus) 
-                            &&  x.DistanceToHome < MaxDistance 
+                            && x.DistanceToHome < MaxDistance 
                             && x.AbilityLevel >= this.AbilityLevel 
                             && x.FamilyFriendliness <= this.FamilyFriendliness 
                             && x.HasServingCapacity(this))
-                                .OrderByDescending(x => x.FamilyFriendliness)
+                                .OrderBy(x => x.TotalVolunteers)
+                                .ThenByDescending(x => x.FamilyFriendliness)
                                 .ThenBy(x => x.AbilityLevel)
-                                .ThenBy(x => x.DistanceToHome)
+                                .ThenBy(x => x.DistanceToHome)                                
                                 .ToList();
 
             return potentials;
@@ -472,8 +497,11 @@ namespace us.northviewchurch.Model.GNW
     {
         public int id { get; set; }
         public string title { get; set; }
+        public string description { get; set; }
         public int familyFriendly { get; set; }
+        public string familyFriendlyDesc { get; set; }
         public int ability { get; set; }
+        public string abilityDesc { get; set; }
         public string nodeType { get; set; }
         public NodeType actualType { get; set; }
         public List<Node> nodes { get; set; }
@@ -489,8 +517,11 @@ namespace us.northviewchurch.Model.GNW
             {
                 id = project.ID,
                 title = project.Name,
+                description = project.Name.Length > 21 ? project.Name.Substring(0,21) : project.Name,
                 familyFriendly = (int)project.FamilyFriendliness,
+                familyFriendlyDesc = project.FamilyFriendliness.DescriptionAttr(),
                 ability = (int)project.AbilityLevel,
+                abilityDesc = project.AbilityLevel.DescriptionAttr(),
                 nodeType = NodeType.project.ToString(),
                 actualType = NodeType.project,                
                 nodes = project.AssignedTeams.Select(x => Node.GetNodesFromVolunteerGroup(x)).ToList()
@@ -505,8 +536,11 @@ namespace us.northviewchurch.Model.GNW
             {
                 id = group.ID,
                 title = group.Name,
+                description = group.Name.Length > 21 ? group.Name.Substring(0, 21) : group.Name,
                 familyFriendly = (int)group.FamilyFriendliness,
+                familyFriendlyDesc = group.FamilyFriendliness.DescriptionAttr(),
                 ability = (int)group.AbilityLevel,
+                abilityDesc = group.AbilityLevel.DescriptionAttr(),
                 nodeType = NodeType.team.ToString(),
                 actualType = NodeType.team
             };

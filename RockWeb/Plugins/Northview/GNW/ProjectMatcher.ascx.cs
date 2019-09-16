@@ -90,14 +90,14 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcher : Rock.Web.UI
         {
             var projRockGroup = groupSvc.Get(project.ID);
 
-            var distResult = geoLocSvc.GetDrivingDistancesToCampuses(geoLocSvc.CampusCoordinates, project.OrgAddress);
+            var distResult = geoLocSvc.GetDrivingDistancesToCampuses(project.ProjectAddress);
 
             if (distResult.Success)
             {
                 string msg = "";
 
                 var success = project.CreateDistancesAttribute(rockCtx, attrValueSvc, attributeSvc, fieldTypeSvc, entityTypeSvc,
-                                                               Int32.Parse(GetAttributeValue("TextFieldTypeId")), Int32.Parse(GetAttributeValue("GroupEntityTypeId")),
+                                                               Int32.Parse(GetAttributeValue("TextFieldTypeId")),
                                                                distResult.ResponseObject, out msg);
 
                 if (!success)
@@ -110,7 +110,7 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcher : Rock.Web.UI
 
         var maxDistance = GetAttributeValue("MaxDrivingDistance").AsDouble();
 
-        foreach (var team in _volunteerTeams)
+        foreach (var team in _volunteerTeams.OrderBy(x=> x.LifeGroupType))
         {
             var potentialProjects = team.FindMatches(_partnerProjects, maxDistance);
 
@@ -233,6 +233,7 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcher : Rock.Web.UI
         _teamGroupTypeId = Int32.Parse(GetAttributeValue("VolunteerGroupTypeID"));
 
         var rockCtx = new Rock.Data.RockContext();
+        rockCtx.Database.CommandTimeout = 300;
 
         var groupSvc = new GroupService(rockCtx);
 

@@ -91,18 +91,18 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcherAnalyzer : Roc
         loadGroupData(selectedVolunteerCampusId, selectedProjectCampusId);
 
         //Grab a Distance Matrix from Bing! if one doesn't already exist
-        foreach (var project in _partnerProjects.Where(x=> !x.Distances.Any()))
+        foreach (var project in _partnerProjects.Where(x=> !x.Distances.Any() || x.Distances.Values.Contains(-1)))
         {
             var projRockGroup = groupSvc.Get(project.ID);
 
-            var distResult = geoLocSvc.GetDrivingDistancesToCampuses(geoLocSvc.CampusCoordinates, project.OrgAddress);
+            var distResult = geoLocSvc.GetDrivingDistancesToCampuses(project.ProjectAddress);
 
             if(distResult.Success)
             {
                 string msg = "";
 
                 var success = project.CreateDistancesAttribute(rockCtx, attrValueSvc, attributeSvc, fieldTypeSvc, entityTypeSvc, 
-                                                               Int32.Parse(GetAttributeValue("TextFieldTypeId")), Int32.Parse(GetAttributeValue("GroupEntityTypeId")), 
+                                                               Int32.Parse(GetAttributeValue("TextFieldTypeId")), 
                                                                distResult.ResponseObject, out msg);
 
                 if(!success)

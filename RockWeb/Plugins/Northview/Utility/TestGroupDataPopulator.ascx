@@ -49,7 +49,28 @@
     }
 
     $(document).ready(function () {
-        
+
+        if (serializedAttributeData) {
+
+            serializedAttributeData.forEach(function (serializedRow) {
+
+                 var rows = $('.attr-table tbody').children('tr').length;
+
+                var txtAttrKey = "<input id='txtAttrKey" + rows + "' class='attr-key'  type='text' value='" + serializedRow.Key + "'/>";
+                var ddlFieldType = "<select id='ddlFieldType" + rows + "' class='attr-type' >" + fieldTypeSelectOptions + "</select>";
+                var txtValues = "<input id='txtValues" + rows + "' type='text' class='attr-values' value='" + serializedRow.AcceptableValues + "' />";
+
+                var newRow = "<tr><td>" + txtAttrKey + "</td><td>" + ddlFieldType + "</td><td>" + txtValues + "</td></tr>";
+
+                $('.attr-table tbody').append(newRow);
+
+                var selectId = '#ddlFieldType' + rows;
+                $(selectId).val(serializedRow.FieldTypeId);
+
+            });
+
+        }
+
     });
     
 

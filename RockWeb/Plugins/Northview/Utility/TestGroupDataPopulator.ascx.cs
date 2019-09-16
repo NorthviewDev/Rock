@@ -26,11 +26,9 @@ public partial class Plugins_Northview_Utility_TestGroupDataPopulator : Rock.Web
 
     protected void loadData()
     {
-        var fieldTypeSelectOptions = new List<String>();
+        loadScripts();
 
         var rockCtx = new Rock.Data.RockContext();
-        
-        fieldTypeSelectOptions = FieldTypeCache.All().Select(x=> String.Format("<option value='{0}'>{1}</option>", x.Id, x.Name)).ToList();
 
         ddlGroupType.DataSource = GroupTypeCache.All().Select(x => new KeyValuePair<int, string>(x.Id, x.Name));
         ddlGroupType.DataValueField = "Key";
@@ -45,11 +43,25 @@ public partial class Plugins_Northview_Utility_TestGroupDataPopulator : Rock.Web
         this.ddlCampuses.DataTextField = "Value";
         this.ddlCampuses.DataSource = activeCampuses.OrderBy(x => x.Key);
         this.ddlCampuses.DataBind();
+    }
 
+    protected void loadScripts()
+    {
+        var fieldTypeSelectOptions = new List<String>();
+
+        fieldTypeSelectOptions = FieldTypeCache.All().Select(x => String.Format("<option value='{0}'>{1}</option>", x.Id, x.Name)).ToList();
+
+        var serializedData = "[]";
+
+        if(!String.IsNullOrWhiteSpace(this.hdnSerializedAttrData.Value))
+        {
+            serializedData = this.hdnSerializedAttrData.Value;
+        }
         var sb = new StringBuilder();
         sb.Append(String.Format(@"
-        var fieldTypeSelectOptions = ""{0}"";        
-        ", String.Join("", fieldTypeSelectOptions)));
+        var fieldTypeSelectOptions = ""{0}""; 
+        var serializedAttributeData = {1};
+        ", String.Join("", fieldTypeSelectOptions), serializedData));
 
         //create script control
         var objScript = new HtmlGenericControl("script");
@@ -86,7 +98,9 @@ public partial class Plugins_Northview_Utility_TestGroupDataPopulator : Rock.Web
 
         var groups = groupSvc.GetAllDescendents(parentGroupId).Where(x => x.GroupTypeId == groupType).ToList();
 
-        foreach(var grp in groups)
+        this.txtLog.InnerHtml = String.Empty;
+
+        foreach (var grp in groups)
         {
             if(!grp.CampusId.HasValue || grp.CampusId != campusId)
             {
@@ -97,7 +111,7 @@ public partial class Plugins_Northview_Utility_TestGroupDataPopulator : Rock.Web
 
             foreach (var attrData in attributeData)
             {
-                var attr = attributeSvc.Queryable().FirstOrDefault(t => t.Key == attrData.Key);
+                var attr = attributeSvc.Queryable().FirstOrDefault(t => t.Key == attrData.Key && t.EntityTypeQualifierValue == groupType.ToString());
                 var attrValue = attrValueSvc.Queryable().Where(t => t.EntityId == grp.Id).ToList().FirstOrDefault(x => x.AttributeKey == attrData.Key);
 
                 if (attr == null)
@@ -110,11 +124,15 @@ public partial class Plugins_Northview_Utility_TestGroupDataPopulator : Rock.Web
                         Name = attrData.Key,
                         Key = attrData.Key,
                         FieldType = fieldType,
-                        EntityType = entityType                        
+                        EntityType = entityType,
+                        IsActive = true,
+                        EntityTypeQualifierColumn = groupType.ToString()
                     };
 
                     attributeSvc.Add(attr);
                     rockCtx.SaveChanges();
+
+                    this.txtLog.InnerHtml += String.Format("Added Attribute {0} ID {1} {2}", attr.Key, attr.Id, Environment.NewLine);
                 }
 
                 if (attrValue == null)
@@ -122,27 +140,35 @@ public partial class Plugins_Northview_Utility_TestGroupDataPopulator : Rock.Web
                     attrValue = new Rock.Model.AttributeValue()
                     {
                         Attribute = attr,
+                        AttributeId = attr.Id,
                         Value = attrData.ValueProvider.Next(),
                         EntityId = grp.Id
                     };
 
                     attrValueSvc.Add(attrValue);
+                    rockCtx.SaveChanges();
+
+                    this.txtLog.InnerHtml += String.Format("Added AttributeValue {0} Value {1}  to Attribute {2} - {3}  {4}", attrValue.Id, attrValue.Value, attr.Key, attr.Id, Environment.NewLine);
                 }
                 else if(String.IsNullOrWhiteSpace(attrValue.Value))
                 {
                     attrValue.Value = attrData.ValueProvider.Next();
-                }
+                    rockCtx.SaveChanges();
 
-                rockCtx.SaveChanges(); 
+                    this.txtLog.InnerHtml += String.Format("Modified AttriuteValue {0} - Value: {1} {2}", attrValue.Id, attrValue.Value, Environment.NewLine);
+                }
             }
         }
+
+        loadScripts();
     }
 }
 
 public enum ValueTypes
 {
     None,
-    Sequence,    
+    Single,
+    Sequence,
     Range
 }
 
@@ -152,13 +178,17 @@ public static class ValueTypesExtensions
     {
         var type = ValueTypes.None;
 
-        if(values.Contains(","))
+        if (values.Contains(","))
         {
             type = ValueTypes.Sequence;
-        }        
+        }
         else if (values.Contains("-"))
         {
             type = ValueTypes.Range;
+        }
+        else
+        {
+            type = ValueTypes.Single;
         }
 
         return type;
@@ -180,7 +210,7 @@ public class ValueProvider
         var val = "";
 
         switch (ValueType)
-        {            
+        {
             case ValueTypes.Sequence:
 
                 var maxIndex = this.Inputs.Count;
@@ -189,7 +219,7 @@ public class ValueProvider
 
                 val = Inputs[index];
 
-                break;           
+                break;
             case ValueTypes.Range:
 
                 var min = Int32.Parse(Inputs[0]);
@@ -197,6 +227,9 @@ public class ValueProvider
 
                 val = new Random().Next(min, max).ToString();
 
+                break;
+            case ValueTypes.Single:
+                val = Inputs.First();
                 break;
             default:
             case ValueTypes.None:
@@ -207,14 +240,14 @@ public class ValueProvider
     }
 
     public static ValueProvider CreateForAttribute(AttributeData attr)
-    {        
+    {
         var inputs = new List<string>();
 
         var type = attr.AcceptableValues.ParseValueType();
 
         if (type == ValueTypes.Sequence)
         {
-            inputs.AddRange(attr.AcceptableValues.Split(new string[] { "," },StringSplitOptions.RemoveEmptyEntries));
+            inputs.AddRange(attr.AcceptableValues.Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries));
 
         }
         else if (type != ValueTypes.None)
@@ -229,7 +262,7 @@ public class ValueProvider
             Inputs = inputs
         };
     }
-} 
+}
 
 public class AttributeData
 {

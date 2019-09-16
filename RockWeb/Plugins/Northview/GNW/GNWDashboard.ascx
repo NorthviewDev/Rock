@@ -83,9 +83,65 @@ tr.awesome {
     color: green;
 }
 
+.onoffswitch {
+    position: relative; width: 90px;
+    -webkit-user-select:none; -moz-user-select:none; -ms-user-select: none;
+}
+.onoffswitch-checkbox {
+    display: none;
+}
+.onoffswitch-label {
+    display: block; overflow: hidden; cursor: pointer;
+    border: 2px solid #999999; border-radius: 20px;
+}
+.onoffswitch-inner {
+    display: block; width: 200%; margin-left: -100%;
+    transition: margin 0.3s ease-in 0s;
+}
+.onoffswitch-inner:before, .onoffswitch-inner:after {
+    display: block; float: left; width: 50%; height: 30px; padding: 0; line-height: 30px;
+    font-size: 14px; color: white; font-family: Trebuchet, Arial, sans-serif; font-weight: bold;
+    box-sizing: border-box;
+}
+.onoffswitch-inner:before {
+    content: "ON";
+    padding-left: 10px;
+    background-color: #34A7C1; color: #FFFFFF;
+}
+.onoffswitch-inner:after {
+    content: "OFF";
+    padding-right: 10px;
+    background-color: #EEEEEE; color: #999999;
+    text-align: right;
+}
+.onoffswitch-switch {
+    display: block; width: 18px; margin: 6px;
+    background: #FFFFFF;
+    position: absolute; top: 0; bottom: 0;
+    right: 56px;
+    border: 2px solid #999999; border-radius: 20px;
+    transition: all 0.3s ease-in 0s; 
+}
+.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-inner {
+    margin-left: 0;
+}
+.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-switch {
+    right: 0px; 
+}
+
 </style>
 
 <script>
+
+    var refreshPage = true;
+
+    function cache_clear() {
+
+        if (refreshPage) {
+             window.location.reload(true);
+            // window.location.reload(); use this if you do not remove cache
+        }       
+    };
 
     var moveBlanks = function (a, b) {
         if (a < b) {
@@ -102,6 +158,7 @@ tr.awesome {
         }
         return 0;
     };
+
     var moveBlanksDesc = function (a, b) {
         // Blanks are by definition the smallest value, so we don't have to
         // worry about them here
@@ -146,14 +203,34 @@ tr.awesome {
                 });
             });
         });
+
+        $('.onoffswitch').on('click', function (event) {
+            refreshPage = !refreshPage;
+        });
+
+         setInterval(function() {
+            cache_clear()
+          }, pageRefreshRate);
     });
 </script>
 
 <h2>Good Neighbor Weekend Dashboard</h2>
+
+<div>
+    <label>Auto Page Refresh</label>
+    <div class="onoffswitch">
+    <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="switchRefresh" checked>
+    <label class="onoffswitch-label" for="switchRefresh">
+        <span class="onoffswitch-inner"></span>
+        <span class="onoffswitch-switch"></span>
+    </label>
+</div>
+</div>
+
 <div style="overflow-x:scroll;">
-    <% var ulWidth =   this._activeCampuses.Count * 200;   %>
- <ul class="nav nav-tabs" id="ulTabContainer" style="width: <% Response.Write(ulWidth); %>>px;"  >
-     <% foreach (var campus in this._activeCampuses)
+    <% var ulWidth =   this._activeCampuses.Where(x=> x.Included).Count() * 200;   %>
+ <ul class="nav nav-tabs" id="ulTabContainer" style="width: <% Response.Write(ulWidth); %>px;"  >
+     <% foreach (var campus in this._activeCampuses.Where(x=> x.Included))
       {
          var trimmedName = campus.Name.Replace(" ", "");
     %>
@@ -167,7 +244,7 @@ tr.awesome {
 </div>
 
   <div class="tab-content" id="divContentContainer" runat="server">  
-     <% foreach (var campus in this._activeCampuses)
+     <% foreach (var campus in this._activeCampuses.Where(x=> x.Included))
          {
              var trimmedName = campus.Name.Replace(" ", "");
              var displayName = String.Format("Data For {0}{1} {2}", campus.ID == -1 ? "" : "The ", campus.Name, campus.ID == -1 ? "" : "Campus" );
@@ -240,12 +317,19 @@ tr.awesome {
                                              {
                                                  var shift = (ServingShift)shiftVal;
                                                  if (project.Shifts.ContainsKey(shift))
-                                                 { %>
-                                                     <td><% Response.Write(project.Shifts[shift]);  %></td>
+                                                 {
+                                                     var lineWidth = ((project.VolunteerCapacity - project.Shifts[shift]) / project.VolunteerCapacity) * 100;
+                                                     if(lineWidth > 90.0M)
+                                                     {
+                                                         lineWidth = 90.0M;
+                                                     }
+
+                                                     %>
+                                                     <td><span style="display:inline-block; background-color:#00b3e7; margin-right: 5px; width:<% Response.Write(lineWidth);  %>%;" >&nbsp;</span><% Response.Write(project.Shifts[shift]);  %></td>
                                                 <% }
                                                 else
                                                 { %>
-                                                    <td> 0</td>
+                                                    <td><span style="display:inline-block; background-color:#00b3e7; margin-right: 5px; width:90%;" >&nbsp;</span> 0</td>
                                               <%  }
                                         %>
                                            

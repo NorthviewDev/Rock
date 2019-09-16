@@ -26,6 +26,11 @@
     }
 
 </style>
+<script>
+   $(document).ready(function(){
+      $('[data-toggle="tooltip"]').tooltip();
+    });
+</script>
 
 <div class="row">
     <div class="col-sm-3">       
@@ -59,16 +64,16 @@
 <div class="row" ng-app="matcherApp" ng-controller="ProjectMatcherCtrl">
     <script type="text/ng-template" id="nodes_renderer1.html">
   <div ui-tree-handle class="tree-node tree-node-content" data-nodetype="{{node.nodeType}}">
-    <div class="col-sm-4">
+    <div class="col-sm-4" data-toggle="tooltip" title="{{node.title}}">
         <a class="btn btn-success btn-xs" data-nodrag ng-click="toggle(this)"><span class="glyphicon" ng-class="{'glyphicon-chevron-right': collapsed, 'glyphicon-chevron-down': !collapsed}"></span></a>
-        {{node.title}}
+        {{node.description}}
     </div>
     <div class="col-sm-3">
         &nbsp;
     </div>
     <div class="col-sm-3">
-        <div class="btn btn-xs" ng-class="{1:'btn-danger', 2:'btn-warning', 3:'btn-success', 4:'btn-special'}[node.ability]" data-nodrag ><i class="fa fa-dashboard" style="font-size: 1.5em;"></i></div>
-        <div class="btn btn-xs" ng-class="{1:'btn-success', 2:'btn-warning', 3:'btn-danger'}[node.familyFriendly]" data-nodrag  ><i class="fa fa-group" style="font-size: 1.5em"></i></div>
+        <div class="btn btn-xs" data-toggle="tooltip" title="{{node.abilityDesc}}" ng-class="{1:'btn-danger', 2:'btn-warning', 3:'btn-success', 4:'btn-special'}[node.ability]" data-nodrag ><i class="fa fa-dashboard" style="font-size: 1.5em;"></i></div>
+        <div class="btn btn-xs" data-toggle="tooltip" title="{{node.familyFriendlyDesc}}" ng-class="{1:'btn-success', 2:'btn-warning', 3:'btn-danger'}[node.familyFriendly]" data-nodrag  ><i class="fa fa-group" style="font-size: 1.5em"></i></div>
     </div>    
   </div>
   <ol ui-tree-nodes="" ng-model="node.nodes" ng-class="{hidden: collapsed}">
@@ -78,16 +83,16 @@
 </script>
 <script type="text/ng-template" id="nodes_renderer2.html">
   <div ui-tree-handle class="tree-node tree-node-content" data-nodetype="{{node.nodeType}}">
-    <div class="col-sm-4">
+    <div class="col-sm-4" data-toggle="tooltip" title="{{node.title}}">
         <a class="btn btn-success btn-xs" data-nodrag ng-click="toggle(this)"><span class="glyphicon" ng-class="{'glyphicon-chevron-right': collapsed, 'glyphicon-chevron-down': !collapsed}"></span></a>
-        {{node.title}}
+        {{node.description}}
     </div>
     <div class="col-sm-3">
         &nbsp;
     </div>
     <div class="col-sm-3">
-        <div class="btn btn-xs" ng-class="{1:'btn-danger', 2:'btn-warning', 3:'btn-success', 4:'btn-special'}[node.ability]" data-nodrag ><i class="fa fa-dashboard" style="font-size: 1.5em;"></i></div>
-        <div class="btn btn-xs" ng-class="{1:'btn-success', 2:'btn-warning', 3:'btn-danger'}[node.familyFriendly]" data-nodrag  ><i class="fa fa-group" style="font-size: 1.5em"></i></div>
+        <div class="btn btn-xs" data-toggle="tooltip" title="{{node.abilityDesc}}" ng-class="{1:'btn-danger', 2:'btn-warning', 3:'btn-success', 4:'btn-special'}[node.ability]" data-nodrag ><i class="fa fa-dashboard" style="font-size: 1.5em;"></i></div>
+        <div class="btn btn-xs" data-toggle="tooltip" title="{{node.familyFriendlyDesc}}" ng-class="{1:'btn-success', 2:'btn-warning', 3:'btn-danger'}[node.familyFriendly]" data-nodrag  ><i class="fa fa-group" style="font-size: 1.5em"></i></div>
     </div>    
   </div>
   <ol ui-tree-nodes="" ng-model="node.nodes" ng-class="{hidden: collapsed}">
