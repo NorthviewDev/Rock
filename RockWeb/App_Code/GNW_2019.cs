@@ -87,8 +87,6 @@ namespace us.northviewchurch.Model.GNW
     {
         [Description("Saturday Morning")]
         SaturdayAM = 1,
-        [Description("Saturday Afternoon")]
-        SaturdayPM,
         [Description("Sunday Morning")]
         SundayAM
     }
@@ -503,6 +501,7 @@ namespace us.northviewchurch.Model.GNW
         public int ability { get; set; }
         public string abilityDesc { get; set; }
         public string nodeType { get; set; }
+        public decimal count { get; set; }
         public NodeType actualType { get; set; }
         public List<Node> nodes { get; set; }
 
@@ -524,6 +523,7 @@ namespace us.northviewchurch.Model.GNW
                 abilityDesc = project.AbilityLevel.DescriptionAttr(),
                 nodeType = NodeType.project.ToString(),
                 actualType = NodeType.project,                
+                count = project.Shifts.Values.Sum(),
                 nodes = project.AssignedTeams.Select(x => Node.GetNodesFromVolunteerGroup(x)).ToList()
             };
 
@@ -542,6 +542,7 @@ namespace us.northviewchurch.Model.GNW
                 ability = (int)group.AbilityLevel,
                 abilityDesc = group.AbilityLevel.DescriptionAttr(),
                 nodeType = NodeType.team.ToString(),
+                count = group.VolunteerCount,
                 actualType = NodeType.team
             };
 

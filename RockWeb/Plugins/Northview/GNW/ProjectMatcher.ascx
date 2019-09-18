@@ -74,6 +74,7 @@
     <div class="col-sm-3">
         <div class="btn btn-xs" data-toggle="tooltip" title="{{node.abilityDesc}}" ng-class="{1:'btn-danger', 2:'btn-warning', 3:'btn-success', 4:'btn-special'}[node.ability]" data-nodrag ><i class="fa fa-dashboard" style="font-size: 1.5em;"></i></div>
         <div class="btn btn-xs" data-toggle="tooltip" title="{{node.familyFriendlyDesc}}" ng-class="{1:'btn-success', 2:'btn-warning', 3:'btn-danger'}[node.familyFriendly]" data-nodrag  ><i class="fa fa-group" style="font-size: 1.5em"></i></div>
+        <div class="btn btn-xs" data-toggle="tooltip" title="Remaining Openings" data-nodrag  ><span style="font-size: 1.2em;background-color: rgb(0, 123, 255);" class="badge">{{node.count}}</span></div>
     </div>    
   </div>
   <ol ui-tree-nodes="" ng-model="node.nodes" ng-class="{hidden: collapsed}">
@@ -93,6 +94,7 @@
     <div class="col-sm-3">
         <div class="btn btn-xs" data-toggle="tooltip" title="{{node.abilityDesc}}" ng-class="{1:'btn-danger', 2:'btn-warning', 3:'btn-success', 4:'btn-special'}[node.ability]" data-nodrag ><i class="fa fa-dashboard" style="font-size: 1.5em;"></i></div>
         <div class="btn btn-xs" data-toggle="tooltip" title="{{node.familyFriendlyDesc}}" ng-class="{1:'btn-success', 2:'btn-warning', 3:'btn-danger'}[node.familyFriendly]" data-nodrag  ><i class="fa fa-group" style="font-size: 1.5em"></i></div>
+        <div class="btn btn-xs" data-toggle="tooltip" title="Group Members" data-nodrag  ><span style="font-size: 1.2em;background-color: rgb(0, 123, 255);" class="badge">{{node.count}}</span></div>
     </div>    
   </div>
   <ol ui-tree-nodes="" ng-model="node.nodes" ng-class="{hidden: collapsed}">

@@ -329,7 +329,7 @@ tr.awesome {
                                                 <% }
                                                 else
                                                 { %>
-                                                    <td><span style="display:inline-block; background-color:#00b3e7; margin-right: 5px; width:90%;" >&nbsp;</span> 0</td>
+                                                    <td></td>
                                               <%  }
                                         %>
                                            

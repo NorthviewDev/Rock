@@ -15,7 +15,7 @@ using us.northviewchurch.Model.GNW;
 [Description("Dashboard for monitoring GNW projects")]
 [IntegerField("Volunteer GroupType ID", "The ID of the GroupType that contains volunteer groups", true, 0)]
 [IntegerField("Project GroupType ID", "The ID of the GroupType assigned project groups", true, 0)]
-[TextField("Group Detail URL",required: true, key: "GroupDetailUrl")]
+[TextField("Group Detail URL", required: true, key: "GroupDetailUrl")]
 public partial class Plugins_Northview_GNW_GNWDashboard : Rock.Web.UI.RockBlock
 {
     private int _projectGroupTypeId = 0;
@@ -36,9 +36,11 @@ public partial class Plugins_Northview_GNW_GNWDashboard : Rock.Web.UI.RockBlock
         {"Binford",288},
         {"Carmel",3854},
         {"Fishers",824},
-        {"GreaterLafeyette",587},
+        {"Greater Lafayette",587},
         {"Kokomo",246},
-        {"Westfield",599},
+        {"North Put",50},
+        {"Peru",70},
+        {"Flora",70}
     };
 
     protected void Page_Load(object sender, EventArgs e)
@@ -47,13 +49,13 @@ public partial class Plugins_Northview_GNW_GNWDashboard : Rock.Web.UI.RockBlock
     }
 
     protected void loadGroupData()
-    {        
+    {
         _projectGroupTypeId = Int32.Parse(GetAttributeValue("ProjectGroupTypeID"));
         _teamGroupTypeId = Int32.Parse(GetAttributeValue("VolunteerGroupTypeID"));
         _detailsUrl = GetAttributeValue("GroupDetailUrl");
         _displayMode = PageParameter("displayMode").ToStringSafe();
 
-        if(String.IsNullOrWhiteSpace(_displayMode))
+        if (String.IsNullOrWhiteSpace(_displayMode))
         {
             _displayMode = "All";
         }
@@ -68,29 +70,28 @@ public partial class Plugins_Northview_GNW_GNWDashboard : Rock.Web.UI.RockBlock
 
         var refreshRate = 120 * 1000;
 
-        if (String.IsNullOrWhiteSpace(this._displayMode) || this._displayMode == "All")
+        _activeCampuses = campusSvc.Queryable().Where(x => x.IsActive ?? false).ToList().Select(x => new CampusInfo(x.Id, x.Name)).ToList();
+
+        if (this._displayMode != "All")
         {
-            _activeCampuses = campusSvc.Queryable().Where(x => x.IsActive ?? false).ToList().Select(x => new CampusInfo(x.Id, x.Name)).ToList();
-        }
-        else
-        {
-            _activeCampuses = campusSvc.Queryable().Where(x => x.Name == this._displayMode).ToList().Select(x => new CampusInfo(x.Id, x.Name)).ToList();
             refreshRate = 30 * 1000;
         }
 
         var campusDataStrings = new List<string>();
 
-        //var adults = personSvc.Queryable().ToList().Where(x => x.Age.HasValue && x.Age >= 18).ToList();
-
         var allNorthview = new CampusInfo(-1, "All Northview");
 
         foreach (var campus in _activeCampuses)
-        {   
+        {
             if (CampusGoals.ContainsKey(campus.Name))
             {
-                campus.Included = true;
 
-                var memberCount = CampusGoals[campus.Name];//adults.Where(x=> x.GetCampus() != null && x.GetCampus().Id == campus.ID).Count();
+                if (this._displayMode == "All" || this._displayMode == campus.Name)
+                {
+                    campus.Included = true;
+                }
+
+                var memberCount = CampusGoals[campus.Name];
 
                 var campusVolunteerGroups = groupSvc.Queryable().Where(x => x.GroupTypeId == _teamGroupTypeId && x.CampusId == campus.ID).ToList();
 
@@ -167,14 +168,14 @@ public partial class Plugins_Northview_GNW_GNWDashboard : Rock.Web.UI.RockBlock
                 var attendeeRatio = memberCount == 0 ? 0M : (((decimal)volunteerCount) / memberCount) * 100;
 
 
-                _thermometerRenderStrings.Add(String.Format("renderThermometer('{0}', {1}, {2});{3}", campus.Name.Replace(" ", ""), attendeeRatio, memberCount, Environment.NewLine)); 
+                _thermometerRenderStrings.Add(String.Format("renderThermometer('{0}', {1}, {2});{3}", campus.Name.Replace(" ", ""), attendeeRatio, memberCount, Environment.NewLine));
             }
-            
+
         }
 
         allNorthview.Included = true;
         _activeCampuses.Add(allNorthview);
-        _thermometerRenderStrings.Add(String.Format("renderThermometer('{0}', {1}, {2});{3}", "AllNorthview", ((decimal)allNorthview.TotalVolunteers / allNorthview.AdultMembers)*100, allNorthview.AdultMembers, Environment.NewLine));
+        _thermometerRenderStrings.Add(String.Format("renderThermometer('{0}', {1}, {2});{3}", "AllNorthview", ((decimal)allNorthview.TotalVolunteers / allNorthview.AdultMembers) * 100, allNorthview.AdultMembers, Environment.NewLine));
 
         _activeCampuses = _activeCampuses.OrderBy(x => x.Name).ToList();
 
@@ -215,7 +216,7 @@ public class CampusInfo
         Projects = new List<PartnerProject>();
     }
 
-    public CampusInfo(int id, string name) 
+    public CampusInfo(int id, string name)
     {
         ID = id;
         Name = name;
