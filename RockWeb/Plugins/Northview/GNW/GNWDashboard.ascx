@@ -204,7 +204,7 @@ tr.awesome {
             });
         });
 
-        $('.onoffswitch').on('click', function (event) {
+        $('#switchRefresh').on('click', function (event) {
             refreshPage = !refreshPage;
         });
 
@@ -298,7 +298,7 @@ tr.awesome {
                                     <th data-sort="string">Name</th>
                                     <th data-sort="int">Max Capacity</th>
                                     <th data-sort="int">Volunteers</th>
-                                    <% foreach(var shift in Enum.GetValues(typeof(ServingShift))) 
+                                    <% foreach(var shift in new ServingShift[] {ServingShift.SaturdayAM, ServingShift.SundayAM })
                                         { %>
                                             <th data-sort="int">Needed <% Response.Write(((ServingShift)shift).DescriptionAttr());%></th>
                                         <%}
@@ -311,9 +311,9 @@ tr.awesome {
                                 { %>
                                     <tr>                                    
                                         <td><a href="<% Response.Write(String.Format("/{0}?GroupId={1}", this._detailsUrl, project.ID.ToString())); %>" ><% Response.Write(project.Name); %></a></td>
-                                        <td><%= project.VolunteerCapacity %></td>
+                                        <td><%= project.VolunteerCapacity * project.Shifts.Count %></td>
                                         <td><%= project.TotalVolunteers %></td>
-                                         <% foreach(var shiftVal in Enum.GetValues(typeof(ServingShift)))
+                                         <% foreach(var shiftVal in new ServingShift[] {ServingShift.SaturdayAM, ServingShift.SundayAM })
                                              {
                                                  var shift = (ServingShift)shiftVal;
                                                  if (project.Shifts.ContainsKey(shift))

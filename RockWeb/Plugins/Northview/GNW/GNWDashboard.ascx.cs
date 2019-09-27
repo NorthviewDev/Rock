@@ -40,7 +40,8 @@ public partial class Plugins_Northview_GNW_GNWDashboard : Rock.Web.UI.RockBlock
         {"Kokomo",246},
         {"North Put",50},
         {"Peru",70},
-        {"Flora",70}
+        {"Flora",70},
+        {"Westfield", 600 }
     };
 
     protected void Page_Load(object sender, EventArgs e)

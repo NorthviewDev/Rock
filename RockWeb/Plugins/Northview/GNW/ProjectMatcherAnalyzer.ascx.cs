@@ -29,8 +29,6 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcherAnalyzer : Roc
     {
         if (!Page.IsPostBack)
         {
-            loadGroupData();
-
             var campusSvc = new CampusService(new Rock.Data.RockContext());
 
             var activeCampuses = campusSvc.Queryable().Where(x => x.IsActive ?? false).ToList().Select(x => new KeyValuePair<int, string>(x.Id, x.Name)).ToList();
@@ -63,6 +61,11 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcherAnalyzer : Roc
         var geoLocSvc = new GeoLocationService(new WebCaller());
         
         var longestDistance = 0.0;
+        var longestSiteLeaderDistance = 0.0;
+
+        var longestDriveData = "";
+        var longestLeaderDriveData = "";
+
         var unmatchedTeams = new List<VolunteerGroup>();
         var unmatchedProjects = new List<PartnerProject>();
         var fullProjects = new List<PartnerProject>();
@@ -90,8 +93,10 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcherAnalyzer : Roc
 
         loadGroupData(selectedVolunteerCampusId, selectedProjectCampusId);
 
+        var distancelessProjs = _partnerProjects.Where(x => !x.Distances.Any() || x.Distances.Values.Contains(-1)).ToList();
+
         //Grab a Distance Matrix from Bing! if one doesn't already exist
-        foreach (var project in _partnerProjects.Where(x=> !x.Distances.Any() || x.Distances.Values.Contains(-1)))
+        foreach (var project in distancelessProjs)
         {
             var projRockGroup = groupSvc.Get(project.ID);
 
@@ -117,41 +122,52 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcherAnalyzer : Roc
 
         var maxDistance = Double.TryParse(this.inputMaxDistance.Value, out distVal) ? distVal : Double.MaxValue;
 
-        foreach (var team in _volunteerTeams)
+        foreach (var team in _volunteerTeams.OrderBy(x => x.LifeGroupType))
         {
-            var potentialProjects = team.FindMatches(_partnerProjects, maxDistance);
+            var potentialProjectsResult = team.FindMatches(_partnerProjects, maxDistance);
 
-            if(potentialProjects.Any())
+            if (potentialProjectsResult.Success)
             {
-                var proj = potentialProjects.First();
+                var proj = potentialProjectsResult.ResponseObject.First();
 
                 proj.AssignTeam(team);
 
                 var projectId = proj.ID;
                 var teamId = team.ID;
 
-                var teamRockGroup = groupSvc.Get(teamId);
+                var distToTravel = proj.DistanceToTarget;
 
-                teamRockGroup.ParentGroupId = projectId;
-
-                var distToTravel = proj.DistanceToHome;
-
-                if(distToTravel != Double.MaxValue && distToTravel > longestDistance)
+                if(team.MemberIds.Contains(proj.SiteLeaderId))
                 {
-                    longestDistance = distToTravel;
-                }
-
-                var lastDist = 0.0;
-
-                foreach(var warning in mileageWarnings.Keys)
-                {
-                    if(distToTravel >= lastDist && distToTravel <= warning)
+                    if (distToTravel != Double.MaxValue && distToTravel > longestSiteLeaderDistance)
                     {
-                        mileageWarnings[warning]++;
-                        break;
+                        longestSiteLeaderDistance = distToTravel;
+
+                        longestLeaderDriveData = String.Format("Group {0}({1}) -> Project {2}({3})", team.Name, team.ID, proj.Name, proj.ID);
+
+                    }
+                }
+                else
+                {
+                    if (distToTravel != Double.MaxValue && distToTravel > longestDistance)
+                    {
+                        longestDistance = distToTravel;
+
+                        longestDriveData = String.Format("Group {0}({1}) -> Project {2}({3})", team.Name, team.ID, proj.Name, proj.ID);
                     }
 
-                    lastDist = warning;
+                    var lastDist = 0.0;
+
+                    foreach (var warning in mileageWarnings.Keys)
+                    {
+                        if (distToTravel >= lastDist && distToTravel <= warning)
+                        {
+                            mileageWarnings[warning]++;
+                            break;
+                        }
+
+                        lastDist = warning;
+                    }
                 }
 
                 var capacityStr = new StringBuilder();
@@ -161,13 +177,16 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcherAnalyzer : Roc
                     capacityStr.AppendLine(String.Format("{0}:{1}", key.DescriptionAttr(), proj.Shifts[key]));
                 }
 
-                this.txtResults.Value += String.Format("Proj {0} Assigned Team {1}:  {2} Remaining {3}", proj.Name, team.Name, Environment.NewLine, capacityStr.ToString());
+                this.txtLog.InnerHtml += String.Format("Proj {0} Assigned Team {1}:  {2} Remaining {3}", proj.Name, team.Name, Environment.NewLine, capacityStr.ToString());
             }
             else
             {
+                this.txtLog.InnerHtml += String.Format("Unable to match team {0}:{1}! Reason: {2}", team.ID, team.Name, potentialProjectsResult.Message);
                 unmatchedTeams.Add(team);
             }
         }
+
+        var unmatchedDict = unmatchedTeams.ToLookup(x => x.HomeCampus);
 
         //Compile some stats!
         unmatchedProjects = this._partnerProjects.Where(x=> x.TotalVolunteers == 0).ToList();
@@ -177,8 +196,11 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcherAnalyzer : Roc
         var stats = new StringBuilder();
 
         stats.AppendFormat("Results for Teams from: {0} and Projects for: {1}{2}", this.ddlVolunteerCampuses.SelectedItem.Text, this.ddlProjectCampuses.SelectedItem.Text, Environment.NewLine);
-        stats.AppendFormat("Average Volunteers per Project: {0} {1}", averageVolunteerCount, Environment.NewLine);
-        stats.AppendFormat("Longest Driving Distance: {0} {1}", longestDistance, Environment.NewLine);
+        stats.AppendFormat("Average Volunteers per Project: {0} {1}", averageVolunteerCount.ToString("0.##"), Environment.NewLine);
+        stats.AppendFormat("Longest Driving Distance: {0} {1}", longestDistance.ToString("0.##"), Environment.NewLine);
+        stats.AppendFormat("Longest Drive Info: {0} {1}", longestDriveData, Environment.NewLine);
+        stats.AppendFormat("Longest Site Leader Driving Distance: {0} {1}", longestSiteLeaderDistance.ToString("0.##"), Environment.NewLine);
+        stats.AppendFormat("Longest Site Leader Drive Info: {0} {1}", longestLeaderDriveData, Environment.NewLine);
         stats.AppendFormat("Number of Unmatched Teams: {0} {1}", unmatchedTeams.Count, Environment.NewLine);
         stats.AppendFormat("Number of Unmatched Projects: {0} {1}", unmatchedProjects.Count, Environment.NewLine);
         stats.AppendFormat("Number of Full Projects: {0} {1}", fullProjects.Count, Environment.NewLine);
@@ -196,7 +218,7 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcherAnalyzer : Roc
             }
         }
 
-        this.txtLog.InnerText = stats.ToString();
+        this.txtResults.InnerText = stats.ToString();
 
     }
 
@@ -214,6 +236,7 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcherAnalyzer : Roc
         var unmatchedVolunteerTeams = groupSvc.Queryable().Where(x => x.GroupTypeId == _teamGroupTypeId && x.ParentGroup.GroupTypeId != _projectGroupTypeId).ToList();
 
         var attrSvc = new AttributeValueService(rockCtx);
+        var groupMemberSvc = new GroupMemberService(rockCtx);
 
         var projectNodes = new List<Node>();
         var teamNodes = new List<Node>();
@@ -243,7 +266,7 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcherAnalyzer : Roc
 
                 foreach (var grp in matchedTeams)
                 {
-                    var result = VolunteerGroup.CreateFromRockGroup(grp, attrSvc);
+                    var result = VolunteerGroup.CreateFromRockGroup(grp, attrSvc, groupMemberSvc);
 
                     if (result.Success)
                     {
@@ -251,7 +274,7 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcherAnalyzer : Roc
                     }
                     else
                     {
-                        this.txtLog.InnerText += result.Message;
+                        this.txtLog.InnerHtml += result.Message;
                     }
                 }
 
@@ -265,7 +288,7 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcherAnalyzer : Roc
 
         foreach (var volTeam in unmatchedVolunteerTeams)
         {
-            var volunteerGrpResult = VolunteerGroup.CreateFromRockGroup(volTeam, attrSvc);
+            var volunteerGrpResult = VolunteerGroup.CreateFromRockGroup(volTeam, attrSvc, groupMemberSvc);
 
             if (volunteerGrpResult.Success)
             {
@@ -277,7 +300,7 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcherAnalyzer : Roc
             }
             else
             {
-                this.txtLog.InnerText += volunteerGrpResult.Message;
+                this.txtLog.InnerHtml += volunteerGrpResult.Message;
             }
         }
     }
@@ -285,8 +308,6 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcherAnalyzer : Roc
     protected void ddlCampuses_SelectedIndexChanged(object sender, EventArgs e)
     {
         var selectedVolunteerCampusId = Int32.Parse(this.ddlVolunteerCampuses.SelectedItem.Value);
-        var selectedProjectCampusId = Int32.Parse(this.ddlProjectCampuses.SelectedItem.Value);
-
-        loadGroupData(selectedVolunteerCampusId, selectedProjectCampusId);
+        var selectedProjectCampusId = Int32.Parse(this.ddlProjectCampuses.SelectedItem.Value);       
     }
 }

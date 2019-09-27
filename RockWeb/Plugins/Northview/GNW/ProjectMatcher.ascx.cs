@@ -41,7 +41,7 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcher : Rock.Web.UI
 
             try
             {
-                loadGroupData();
+                //loadGroupData();
 
                 var campusSvc = new CampusService(new Rock.Data.RockContext());
 
@@ -84,7 +84,7 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcher : Rock.Web.UI
         var selectedProjectCampusId = Int32.Parse(this.ddlProjectCampuses.SelectedItem.Value);
 
         loadGroupData(selectedVolunteerCampusId, selectedProjectCampusId);
-
+        
         //Grab a Distance Matrix from Bing! if one doesn't already exist
         foreach (var project in _partnerProjects.Where(x => !x.Distances.Any()))
         {
@@ -112,11 +112,11 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcher : Rock.Web.UI
 
         foreach (var team in _volunteerTeams.OrderBy(x=> x.LifeGroupType))
         {
-            var potentialProjects = team.FindMatches(_partnerProjects, maxDistance);
+            var potentialProjectsResult = team.FindMatches(_partnerProjects, maxDistance);
 
-            if(potentialProjects.Any())
+            if(potentialProjectsResult.Success)
             {
-                var proj = potentialProjects.First();
+                var proj = potentialProjectsResult.ResponseObject.First();
 
                 proj.AssignTeam(team);
 
@@ -138,9 +138,13 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcher : Rock.Web.UI
 
                 this.txtResults.Value += String.Format("Proj {0} Assigned Team {1}:  {2} Remaining {3}", proj.Name, team.Name, Environment.NewLine, capacityStr.ToString());
             }
+            else
+            {
+                var msg = potentialProjectsResult.Message;
+            }
         }
 
-        loadGroupData();
+        loadGroupData(selectedVolunteerCampusId, selectedProjectCampusId);
     }
 
     protected void btnAssign_Click(object sender, EventArgs e)
@@ -219,7 +223,10 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcher : Rock.Web.UI
                 } 
             }
 
-            loadGroupData();
+            var selectedVolunteerCampusId = Int32.Parse(this.ddlVolunteerCampuses.SelectedItem.Value);
+            var selectedProjectCampusId = Int32.Parse(this.ddlProjectCampuses.SelectedItem.Value);
+
+            loadGroupData(selectedVolunteerCampusId, selectedProjectCampusId);
         }
         
     }
@@ -241,6 +248,7 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcher : Rock.Web.UI
         var unmatchedVolunteerTeams = groupSvc.GetAllDescendents(_parentTeamGroupId).Where(x => x.GroupTypeId == _teamGroupTypeId).ToList();
 
         var attrSvc = new AttributeValueService(rockCtx);
+        var groupMemberSvc = new GroupMemberService(rockCtx);
 
         if (volunteerCampusFilter > -1)
         {
@@ -269,7 +277,7 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcher : Rock.Web.UI
 
                 foreach (var grp in matchedTeams)
                 {
-                    var result = VolunteerGroup.CreateFromRockGroup(grp, attrSvc);
+                    var result = VolunteerGroup.CreateFromRockGroup(grp, attrSvc, groupMemberSvc);
 
                     if (result.Success)
                     {
@@ -295,7 +303,7 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcher : Rock.Web.UI
 
         foreach (var volTeam in unmatchedVolunteerTeams)
         {
-            var volunteerGrpResult = VolunteerGroup.CreateFromRockGroup(volTeam, attrSvc);
+            var volunteerGrpResult = VolunteerGroup.CreateFromRockGroup(volTeam, attrSvc, groupMemberSvc);
 
             if(volunteerGrpResult.Success)
             {
