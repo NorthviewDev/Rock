@@ -22,6 +22,7 @@ using us.northviewchurch.Model.GNW;
 [IntegerField("Project Parent Group ID", "The ID of the Parent Group that contains project groups", true, 0)]
 [IntegerField("Project GroupType ID", "The ID of the GroupType assigned project groups", true, 0)]
 [IntegerField("Text FieldType ID", "The ID of the Text FieldType", true, 1, key: "TextFieldTypeId")]
+[IntegerField("Person FieldType ID", "The ID of the Person FieldType", true, 18, key: "PersonFieldTypeId")]
 [IntegerField("Group EntityType ID", "The ID of the Group EntityTypes", true, 16, key: "GroupEntityTypeId")]
 public partial class Plugins_us_northviewchurch_GNW_ProjectMatcher : Rock.Web.UI.RockBlock
 {
@@ -77,6 +78,7 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcher : Rock.Web.UI
         var attrValueSvc = new AttributeValueService(rockCtx);
         var entityTypeSvc = new EntityTypeService(rockCtx);
         var personAliasSvc = new PersonAliasService(rockCtx);
+        var personSvc = new PersonService(rockCtx);
 
         var geoLocSvc = new GeoLocationService(new WebCaller());
 
@@ -110,7 +112,9 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcher : Rock.Web.UI
 
         var maxDistance = GetAttributeValue("MaxDrivingDistance").AsDouble();
 
-        foreach (var team in _volunteerTeams.OrderBy(x=> x.LifeGroupType))
+        var teams = _volunteerTeams.OrderBy(x=> x.SiteLeaderId.HasValue ? 0 : 1).ThenBy(x => x.LifeGroupType);
+
+        foreach (var team in teams)
         {
             var potentialProjectsResult = team.FindMatches(_partnerProjects, maxDistance);
 
@@ -126,6 +130,24 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcher : Rock.Web.UI
                 var teamRockGroup = groupSvc.Get(teamId);
 
                 teamRockGroup.ParentGroupId = projectId;
+
+                if(team.SiteLeaderId.HasValue && proj.SiteLeaderId == -1)
+                {
+                    var msg = "";
+
+                    var success = proj.CreateSiteLeaderAttribute(rockCtx, attrValueSvc, attributeSvc, fieldTypeSvc, entityTypeSvc,
+                                                              Int32.Parse(GetAttributeValue("PersonFieldTypeId")),
+                                                              team.SiteLeaderId.Value, out msg);
+
+                    if (!success)
+                    {
+                        this.AppendError(msg);
+                    }
+                    else
+                    {
+                        proj.SiteLeaderId = team.SiteLeaderId.Value;
+                    }
+                }
 
                 rockCtx.SaveChanges();
 
@@ -195,6 +217,11 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcher : Rock.Web.UI
             {
                 _parentTeamGroupId = Int32.Parse(GetAttributeValue("VolunteerParentGroupID"));
 
+                var groupSignupGroupId = 275395;
+                var individualSignupGroupId = 275394;
+
+                var attrValueSvc = new AttributeValueService(rockCtx);
+
                 foreach (var teamNode in unassignedNodes)
                 {
                     var projectId = _parentTeamGroupId;
@@ -202,23 +229,81 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcher : Rock.Web.UI
 
                     if (teamId != projectId)
                     {
-                       var teamRockGroup = groupSvc.Get(teamId);
+                        var teamRockGroup = groupSvc.Get(teamId);
 
-                        var campusGrp = groupSvc.Queryable().Where(x => x.ParentGroupId == _parentTeamGroupId && x.Name == teamRockGroup.Campus.Name).FirstOrDefault();
+                        var projAttrs = attrValueSvc.Queryable().Where(t => (t.EntityId == teamRockGroup.Id)).ToList();
 
-                        if(campusGrp != null)
+                        var source = projAttrs.FirstOrDefault(x => x.AttributeKey == "Source");
+
+                        if (source == null || String.IsNullOrWhiteSpace(source.Value))
                         {
-                            teamRockGroup.ParentGroupId = campusGrp.Id;
-
-                            rockCtx.SaveChanges();
+                            this.AppendError(String.Format("Group {0} has no Source attribute! {1}", teamRockGroup.Id, Environment.NewLine));
                         }
                         else
                         {
-                            var msg = String.Format(@"Could not restore team to original group, please contact the administrator with the following info: 
-                                                                    Team GroupId: {0}, Team Campus: {1},Team Campus Id: {2}", teamRockGroup.Id, teamRockGroup.Campus.Name, teamRockGroup.CampusId);
-                            this.AppendError(msg);
-                        }
-                        
+                            var campusId = 0;
+
+                            if (teamRockGroup.Campus == null)
+                            {
+
+                                if (teamRockGroup.Members != null && teamRockGroup.Members.Any())
+                                {
+                                    var member = teamRockGroup.Members.First();
+
+                                    var campus = member.Person.GetCampus();
+
+                                    if (campus != null)
+                                    {
+                                        campusId = campus.Id;
+                                    }
+                                    else
+                                    {
+                                        this.AppendError(String.Format("No Campus for {0}! {1}", teamRockGroup.Id, Environment.NewLine));
+                                        continue;
+                                    }
+                                }
+                                else
+                                {
+                                    this.AppendError(String.Format("No Campus or Members for {0}! {1}", teamRockGroup.Id, Environment.NewLine));
+                                    continue;
+                                }
+                            }
+                            else
+                            {
+                                campusId = teamRockGroup.Campus.Id;
+                            }
+
+                            if (source.Value == "1")
+                            {
+                                var groupParentGroup = groupSvc.Queryable().Where(x => x.ParentGroupId == groupSignupGroupId && x.CampusId == campusId).FirstOrDefault();
+
+                                if (groupParentGroup != null)
+                                {
+                                    teamRockGroup.ParentGroupId = groupParentGroup.Id;
+
+                                    rockCtx.SaveChanges();
+                                }
+                                else
+                                {
+                                    this.AppendError(String.Format("No Parent Group found for {0}, campus: {1}! {2}", teamRockGroup.Id, teamRockGroup.Campus.Name, Environment.NewLine));
+                                }
+                            }
+                            else
+                            {
+                                var indParentGroup = groupSvc.Queryable().Where(x => x.ParentGroupId == individualSignupGroupId && x.CampusId == campusId).FirstOrDefault();
+
+                                if (indParentGroup != null)
+                                {
+                                    teamRockGroup.ParentGroupId = indParentGroup.Id;
+
+                                    rockCtx.SaveChanges();
+                                }
+                                else
+                                {
+                                    this.AppendError(String.Format("No Parent Group found for {0}, campus: {1}! {2}", teamRockGroup.Id, teamRockGroup.Campus.Name, Environment.NewLine));
+                                }
+                            }
+                        }                        
                     }
                 } 
             }

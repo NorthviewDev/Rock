@@ -1,10 +1,9 @@
-﻿using Rock.Model;
+﻿using Rock.Data;
+using Rock.Model;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data;
 using System.Linq;
-using System.Web;
-using System.Web.UI;
 using System.Web.UI.WebControls;
 
 [DisplayName("General Task Utility")]
@@ -21,7 +20,7 @@ public partial class Plugins_Northview_Utility_GeneralTaskUtility : Rock.Web.UI.
     {
         try
         {
-            var rockCtx = new Rock.Data.RockContext();
+            var rockCtx = new RockContext();
 
             var groupSvc = new GroupService(rockCtx);
 
@@ -42,46 +41,90 @@ public partial class Plugins_Northview_Utility_GeneralTaskUtility : Rock.Web.UI.
 
             foreach (var volGroup in assignedVolunteers)
             {
-                var projAttrs = attrValueSvc.Queryable().Where(t => (t.EntityId == volGroup.Id || (volGroup.Id == null && t.EntityId == null))).ToList();
+                var projAttrs = attrValueSvc.Queryable().Where(t => (t.EntityId == volGroup.Id )).ToList();
 
-                var source = projAttrs.FirstOrDefault(x => x.AttributeKey == "Source");
+                if (projAttrs != null)
+                {
+                    var source = projAttrs.FirstOrDefault(x => x.AttributeKey == "Source");
 
-                if (source == null || String.IsNullOrWhiteSpace(source.Value))
-                {
-                    this.txtResults.InnerHtml += String.Format("Group {0} has no Source attribute! {1}", volGroup.Id, Environment.NewLine);
-                }
-                else
-                {
-                    if (source.Value == "1")
+                    if (source == null || String.IsNullOrWhiteSpace(source.Value))
                     {
-                        var groupParentGroup = groupSvc.Queryable().Where(x => x.ParentGroup.Id == groupSignupGroupId && x.Name == volGroup.Campus.Name).FirstOrDefault();
-
-                        if (groupParentGroup != null)
-                        {
-                            volGroup.ParentGroupId = groupParentGroup.Id;
-
-                            rockCtx.SaveChanges();
-                        }
-                        else
-                        {
-                            this.txtResults.InnerHtml += String.Format("No Parent Group found for {0}, campus: {1}! {2}", volGroup.Id, volGroup.Campus.Name, Environment.NewLine);
-                        }
+                        this.txtResults.InnerHtml += String.Format("Group {0} has no Source attribute! {1}", volGroup.Id, Environment.NewLine);
                     }
                     else
                     {
-                        var indParentGroup = groupSvc.Queryable().Where(x => x.ParentGroup.Id == individualSignupGroupId && x.Name == volGroup.Campus.Name).FirstOrDefault();
 
-                        if (indParentGroup != null)
+                        var campusId = 0;
+
+                        if (volGroup.Campus == null)
                         {
-                            volGroup.ParentGroupId = indParentGroup.Id;
+                            
+                            if(volGroup.Members != null && volGroup.Members.Any())
+                            {
+                                var member = volGroup.Members.First();
 
-                            rockCtx.SaveChanges();
+                                var campus = member.Person.GetCampus();
+
+                                if(campus != null)
+                                {
+                                    campusId = campus.Id;
+                                }
+                                else
+                                {
+                                    this.txtResults.InnerHtml += String.Format("No Campus for {0}! {1}", volGroup.Id, Environment.NewLine);
+                                    continue;
+                                }
+                            }
+                            else
+                            {
+                                this.txtResults.InnerHtml += String.Format("No Campus or Members for {0}! {1}", volGroup.Id, Environment.NewLine);
+                                volGroup.ParentGroupId = 281103;
+                                rockCtx.SaveChanges();
+                                continue;
+                            }
                         }
                         else
                         {
-                            this.txtResults.InnerHtml += String.Format("No Parent Group found for {0}, campus: {1}! {2}", volGroup.Id, volGroup.Campus.Name, Environment.NewLine);
+                            campusId = volGroup.Campus.Id;
                         }
-                    }
+
+                        if (source.Value == "1")
+                        {
+                            var groupParentGroup = groupSvc.Queryable().Where(x => x.ParentGroupId == groupSignupGroupId && x.CampusId == campusId).FirstOrDefault();
+
+                            if (groupParentGroup != null)
+                            {
+                                volGroup.ParentGroupId = groupParentGroup.Id;
+
+                                rockCtx.SaveChanges();
+                            }
+                            else
+                            {
+                                this.txtResults.InnerHtml += String.Format("No Parent Group found for {0}, campus: {1}! {2}", volGroup.Id, volGroup.Campus.Name, Environment.NewLine);
+                            }
+                        }
+                        else
+                        {
+                            var indParentGroup = groupSvc.Queryable().Where(x => x.ParentGroupId == individualSignupGroupId && x.CampusId == campusId).FirstOrDefault();
+
+                            if (indParentGroup != null)
+                            {
+                                volGroup.ParentGroupId = indParentGroup.Id;
+
+                                rockCtx.SaveChanges();
+                            }
+                            else
+                            {
+                                this.txtResults.InnerHtml += String.Format("No Parent Group found for {0}, campus: {1}! {2}", volGroup.Id, volGroup.Campus.Name, Environment.NewLine);
+                            }
+                        }
+
+
+                    } 
+                }
+                else
+                {
+                    this.txtResults.InnerHtml += String.Format("No Attributes Foundd for Group {0}, campus: {1}! {2}", volGroup.Id, volGroup.Campus.Name, Environment.NewLine);
                 }
             }
         }
@@ -89,5 +132,5 @@ public partial class Plugins_Northview_Utility_GeneralTaskUtility : Rock.Web.UI.
         {
             this.txtResults.InnerHtml += String.Format("Error! Message: {0} {2} Stack: {1}{2}", ex.Message, ex.StackTrace, Environment.NewLine);
         }
-    }
+    }    
 }

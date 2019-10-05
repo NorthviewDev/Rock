@@ -15,6 +15,7 @@ using us.northviewchurch.Model.GNW;
 [Description("Dashboard for monitoring GNW projects")]
 [IntegerField("Volunteer GroupType ID", "The ID of the GroupType that contains volunteer groups", true, 0)]
 [IntegerField("Project GroupType ID", "The ID of the GroupType assigned project groups", true, 0)]
+[IntegerField("DIY GroupType ID", "The ID of the GroupType that contains DIY volunteer groups", true, 0)]
 [TextField("Group Detail URL", required: true, key: "GroupDetailUrl")]
 public partial class Plugins_Northview_GNW_GNWDashboard : Rock.Web.UI.RockBlock
 {
@@ -22,6 +23,7 @@ public partial class Plugins_Northview_GNW_GNWDashboard : Rock.Web.UI.RockBlock
     private List<PartnerProject> _partnerProjects = new List<PartnerProject>();
 
     private int _teamGroupTypeId = 0;
+    private int _diyGroupTypeId = 0;
     private List<VolunteerGroup> _volunteerTeams = new List<VolunteerGroup>();
 
     protected List<CampusInfo> _activeCampuses = new List<CampusInfo>();
@@ -53,6 +55,7 @@ public partial class Plugins_Northview_GNW_GNWDashboard : Rock.Web.UI.RockBlock
     {
         _projectGroupTypeId = Int32.Parse(GetAttributeValue("ProjectGroupTypeID"));
         _teamGroupTypeId = Int32.Parse(GetAttributeValue("VolunteerGroupTypeID"));
+        _diyGroupTypeId = Int32.Parse(GetAttributeValue("DIYGroupTypeID"));
         _detailsUrl = GetAttributeValue("GroupDetailUrl");
         _displayMode = PageParameter("displayMode").ToStringSafe();
 
@@ -68,6 +71,7 @@ public partial class Plugins_Northview_GNW_GNWDashboard : Rock.Web.UI.RockBlock
         var campusSvc = new CampusService(rockCtx);
         var personSvc = new PersonService(rockCtx);
         var attrSvc = new AttributeValueService(rockCtx);
+        var groupMemberSvc = new GroupMemberService(rockCtx);
 
         var refreshRate = 120 * 1000;
 
@@ -82,6 +86,24 @@ public partial class Plugins_Northview_GNW_GNWDashboard : Rock.Web.UI.RockBlock
 
         var allNorthview = new CampusInfo(-1, "All Northview");
 
+        var campusVolunteerGroups = groupSvc.Queryable().Where(x => (x.GroupTypeId == _teamGroupTypeId || x.GroupTypeId == _diyGroupTypeId) && x.IsActive).ToList();
+
+        var campusVolunteers = new List<VolunteerGroup>();
+
+        foreach (var cvg in campusVolunteerGroups)
+        {
+            var volResult = VolunteerGroup.CreateFromRockGroup(cvg, attrSvc, groupMemberSvc);
+
+            if (volResult.Success)
+            {
+                campusVolunteers.Add(volResult.ResponseObject);
+            }
+            else
+            {
+                txtDebugLog.InnerText += volResult.Message;
+            }
+        }
+
         foreach (var campus in _activeCampuses)
         {
             if (CampusGoals.ContainsKey(campus.Name))
@@ -93,24 +115,6 @@ public partial class Plugins_Northview_GNW_GNWDashboard : Rock.Web.UI.RockBlock
                 }
 
                 var memberCount = CampusGoals[campus.Name];
-
-                var campusVolunteerGroups = groupSvc.Queryable().Where(x => x.GroupTypeId == _teamGroupTypeId && x.CampusId == campus.ID).ToList();
-
-                var campusVolunteers = new List<VolunteerGroup>();
-
-                foreach (var cvg in campusVolunteerGroups)
-                {
-                    var volResult = VolunteerGroup.CreateFromRockGroup(cvg, attrSvc);
-
-                    if (volResult.Success)
-                    {
-                        campusVolunteers.Add(volResult.ResponseObject);
-                    }
-                    else
-                    {
-                        txtDebugLog.InnerText += volResult.Message;
-                    }
-                }
 
                 var campusProjectsGroups = groupSvc.Queryable().Where(x => x.GroupTypeId == _projectGroupTypeId && x.CampusId == campus.ID).ToList();
 
@@ -125,11 +129,11 @@ public partial class Plugins_Northview_GNW_GNWDashboard : Rock.Web.UI.RockBlock
 
                         var partnerProj = projResult.ResponseObject;
 
-                        var matchedTeams = groupSvc.GetChildren(partnerProj.ID, 0, false, new List<int> { _teamGroupTypeId }, new List<int> { 0 }, false, false).ToList();
+                        var matchedTeams = groupSvc.GetChildren(partnerProj.ID, 0, false, new List<int> { _teamGroupTypeId, _diyGroupTypeId }, new List<int> { 0 }, false, false).ToList();
 
                         foreach (var grp in matchedTeams)
                         {
-                            var result = VolunteerGroup.CreateFromRockGroup(grp, attrSvc);
+                            var result = VolunteerGroup.CreateFromRockGroup(grp, attrSvc, groupMemberSvc);
 
                             if (result.Success)
                             {
@@ -149,7 +153,7 @@ public partial class Plugins_Northview_GNW_GNWDashboard : Rock.Web.UI.RockBlock
                     }
                 }
 
-                var volunteerCount = campusVolunteers.Sum(x => x.VolunteerCount);
+                var volunteerCount = campusVolunteers.Where(x=> x.HomeCampusId == campus.ID).Sum(x => x.VolunteerCount);
                 var projectCapacity = campusProjects.Sum(x => x.Shifts.Values.Sum());
 
                 campus.TotalProjects = campusProjects.Count;
