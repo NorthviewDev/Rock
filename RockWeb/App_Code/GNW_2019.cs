@@ -742,6 +742,8 @@ namespace us.northviewchurch.Model.GNW
         public decimal count { get; set; }
         public NodeType actualType { get; set; }
         public List<Node> nodes { get; set; }
+        public bool hasSiteLeader { get; set; }
+        public string shift { get; set; }
 
         public Node()
         {
@@ -750,6 +752,15 @@ namespace us.northviewchurch.Model.GNW
 
         public static Node GetNodesFromProjectGroup(PartnerProject project)
         {
+            var shiftStr = "??";
+
+            if(project.Shifts != null && project.Shifts.Keys.Any())
+            {
+                shiftStr = project.Shifts.Keys.First() == ServingShift.SaturdayAM ? "Sa" : "Su";
+
+
+            }
+
             var node = new Node()
             {
                 id = project.ID,
@@ -762,7 +773,9 @@ namespace us.northviewchurch.Model.GNW
                 nodeType = NodeType.project.ToString(),
                 actualType = NodeType.project,
                 count = project.Shifts.Values.Sum(),
-                nodes = project.AssignedTeams.Select(x => Node.GetNodesFromVolunteerGroup(x)).ToList()
+                nodes = project.AssignedTeams.Select(x => Node.GetNodesFromVolunteerGroup(x)).ToList(),
+                hasSiteLeader = project.SiteLeaderId > 0,
+                shift = shiftStr
             };
 
             return node;
@@ -770,6 +783,16 @@ namespace us.northviewchurch.Model.GNW
 
         public static Node GetNodesFromVolunteerGroup(VolunteerGroup group)
         {
+
+            var shiftStr = "??";
+
+            if (group.Shifts != null && group.Shifts.Any())
+            {
+                shiftStr = group.Shifts.First() == ServingShift.SaturdayAM ? "Sa" : "Su";
+
+
+            }
+
             var node = new Node()
             {
                 id = group.ID,
@@ -781,7 +804,9 @@ namespace us.northviewchurch.Model.GNW
                 abilityDesc = group.AbilityLevel.DescriptionAttr(),
                 nodeType = NodeType.team.ToString(),
                 count = group.VolunteerCount,
-                actualType = NodeType.team
+                actualType = NodeType.team,
+                hasSiteLeader = group.SiteLeaderId.HasValue,
+                shift = shiftStr
             };
 
             return node;

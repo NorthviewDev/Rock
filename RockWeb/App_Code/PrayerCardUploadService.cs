@@ -45,6 +45,9 @@ public class PrayerCardUploadService : System.Web.Services.WebService
 
             var ctx = new RockContext();
             var batchSvc = new PrayerBatchService(ctx);
+            var personAliasSvc = new PersonAliasService(ctx);
+
+            var personAlias = personAliasSvc.Queryable().Where(x=>x.PersonId == userId).FirstOrDefault();
 
             int? batchId = null;
 
@@ -98,8 +101,9 @@ public class PrayerCardUploadService : System.Web.Services.WebService
                             FirstName = "GBB Prayer Request",
                             EnteredDateTime = DateTime.Now,
                             IsApproved = true,
+                            IsActive = true,
                             ApprovedOnDateTime = DateTime.Now,
-                            ApprovedByPersonAliasId = userId
+                            ApprovedByPersonAliasId = personAlias.Id
                         };
 
                         prayerSvc.Add(newRequest);

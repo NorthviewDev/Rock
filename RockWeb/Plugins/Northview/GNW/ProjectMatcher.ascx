@@ -68,12 +68,13 @@
         <a class="btn btn-success btn-xs" data-nodrag ng-click="toggle(this)"><span class="glyphicon" ng-class="{'glyphicon-chevron-right': collapsed, 'glyphicon-chevron-down': !collapsed}"></span></a>
         {{node.description}}
     </div>
-    <div class="col-sm-3">
+    <div class="col-sm-2">
         &nbsp;
     </div>
-    <div class="col-sm-3">
+    <div class="col-sm-4">
         <div class="btn btn-xs" data-toggle="tooltip" title="{{node.abilityDesc}}" ng-class="{1:'btn-danger', 2:'btn-warning', 3:'btn-success', 4:'btn-special'}[node.ability]" data-nodrag ><i class="fa fa-dashboard" style="font-size: 1.5em;"></i></div>
         <div class="btn btn-xs" data-toggle="tooltip" title="{{node.familyFriendlyDesc}}" ng-class="{1:'btn-success', 2:'btn-warning', 3:'btn-danger'}[node.familyFriendly]" data-nodrag  ><i class="fa fa-group" style="font-size: 1.5em"></i></div>
+        <div class="btn btn-xs" data-toggle="tooltip" title="Day" data-nodrag  ><span style="font-size: 1.2em;background-color: rgb(0, 123, 255);" class="badge">{{node.shift}}</span></div>
         <div class="btn btn-xs" data-toggle="tooltip" title="Remaining Openings" data-nodrag  ><span style="font-size: 1.2em;background-color: rgb(0, 123, 255);" class="badge">{{node.count}}</span></div>
     </div>    
   </div>
@@ -88,12 +89,13 @@
         <a class="btn btn-success btn-xs" data-nodrag ng-click="toggle(this)"><span class="glyphicon" ng-class="{'glyphicon-chevron-right': collapsed, 'glyphicon-chevron-down': !collapsed}"></span></a>
         {{node.description}}
     </div>
-    <div class="col-sm-3">
+    <div class="col-sm-2">
         &nbsp;
     </div>
-    <div class="col-sm-3">
+    <div class="col-sm-4">
         <div class="btn btn-xs" data-toggle="tooltip" title="{{node.abilityDesc}}" ng-class="{1:'btn-danger', 2:'btn-warning', 3:'btn-success', 4:'btn-special'}[node.ability]" data-nodrag ><i class="fa fa-dashboard" style="font-size: 1.5em;"></i></div>
         <div class="btn btn-xs" data-toggle="tooltip" title="{{node.familyFriendlyDesc}}" ng-class="{1:'btn-success', 2:'btn-warning', 3:'btn-danger'}[node.familyFriendly]" data-nodrag  ><i class="fa fa-group" style="font-size: 1.5em"></i></div>
+        <div class="btn btn-xs" data-toggle="tooltip" title="Day" data-nodrag  ><span style="font-size: 1.2em;background-color: rgb(0, 123, 255);" class="badge">{{node.shift}}</span></div>
         <div class="btn btn-xs" data-toggle="tooltip" title="Group Members" data-nodrag  ><span style="font-size: 1.2em;background-color: rgb(0, 123, 255);" class="badge">{{node.count}}</span></div>
     </div>    
   </div>
@@ -119,7 +121,9 @@
     
     <div class="">
       <div class="col-sm-6">
-        <h3>Projects</h3>
+        <h3>Projects</h3> 
+          <asp:CheckBox ID ="chkBoxShowProjects" Text="Hide Full Projects" runat="server" AutoPostBack="true" Checked="true" OnCheckedChanged=" chkBoxShowProjects_CheckedChanged" />
+          <asp:CheckBox ID ="chkBoxShowProjectsWithoutLeaders" Text="Only Show Projects Without Leaders" runat="server" AutoPostBack="true" Checked="false" OnCheckedChanged="chkBoxShowProjectsWithoutLeaders_CheckedChanged" />
         <div ui-tree="projectTreeOptions" id="tree1-root">
           <ol ui-tree-nodes="" ng-model="projects" data-nodetype="projectDrop" id="projTree" >
             <li ng-repeat="node in projects" ui-tree-node ng-include="'nodes_renderer1.html'" ></li>
@@ -128,7 +132,8 @@
       </div>
 
       <div class="col-sm-6">
-        <h3>Volunteers</h3>
+        <h3>Volunteers</h3> 
+          <asp:CheckBox ID ="chkBoxShowLeadaers" Text="Only Show Groups With Site Leaders" runat="server" AutoPostBack="true" Checked="false" OnCheckedChanged="chkBoxShowLeadaers_CheckedChanged" />
         <div ui-tree="teamTreeOptions" id="tree2-root">
           <ol ui-tree-nodes="" ng-model="volunteers" data-nodetype="teamDrop">
             <li ng-repeat="node in volunteers" ui-tree-node ng-include="'nodes_renderer2.html'"></li>

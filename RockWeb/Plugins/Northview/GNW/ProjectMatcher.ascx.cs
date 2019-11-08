@@ -316,7 +316,7 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcher : Rock.Web.UI
         
     }
 
-    protected void loadGroupData(int volunteerCampusFilter = -1, int projectCampusFilter = -1)
+    protected void loadGroupData(int volunteerCampusFilter = -1, int projectCampusFilter = -1, bool hideFullProjects = true, bool onlyShowSiteLeaders = false, bool onlyShowLeaderlessProjects = false)
     {
         _parentProjectGroupId = Int32.Parse(GetAttributeValue("ProjectParentGroupID"));
         _projectGroupTypeId = Int32.Parse(GetAttributeValue("ProjectGroupTypeID"));
@@ -406,6 +406,21 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcher : Rock.Web.UI
 
         //create a string for the inner HTML of the script
 
+        if(hideFullProjects)
+        {
+            projectNodes = projectNodes.Where(x => x.count > 0).ToList();
+        }
+
+        if(onlyShowSiteLeaders)
+        {
+            teamNodes = teamNodes.Where(x=> x.hasSiteLeader).ToList();            
+        }
+
+        if(onlyShowLeaderlessProjects)
+        {
+            projectNodes = projectNodes.Where(x => x.hasSiteLeader == false).ToList();
+        }
+
         var projNodesStrings = JsonConvert.SerializeObject(projectNodes);
 
         var volNodesStrings = JsonConvert.SerializeObject(teamNodes);
@@ -446,5 +461,29 @@ public partial class Plugins_us_northviewchurch_GNW_ProjectMatcher : Rock.Web.UI
         this.pnlErrorMessage.Visible = true;
         var msg = String.Format("Error! Message: {0} {2} Stack: {1}{2}", e.Message, e.StackTrace, Environment.NewLine);
         this.txtError.InnerHtml += msg;
+    }
+
+    protected void chkBoxShowProjects_CheckedChanged(object sender, EventArgs e)
+    {
+        var selectedVolunteerCampusId = Int32.Parse(this.ddlVolunteerCampuses.SelectedItem.Value);
+        var selectedProjectCampusId = Int32.Parse(this.ddlProjectCampuses.SelectedItem.Value);
+
+        loadGroupData(selectedVolunteerCampusId, selectedProjectCampusId, this.chkBoxShowProjects.Checked, this.chkBoxShowLeadaers.Checked);
+    }
+
+    protected void chkBoxShowLeadaers_CheckedChanged(object sender, EventArgs e)
+    {
+        var selectedVolunteerCampusId = Int32.Parse(this.ddlVolunteerCampuses.SelectedItem.Value);
+        var selectedProjectCampusId = Int32.Parse(this.ddlProjectCampuses.SelectedItem.Value);
+
+        loadGroupData(selectedVolunteerCampusId, selectedProjectCampusId, this.chkBoxShowProjects.Checked, this.chkBoxShowLeadaers.Checked);
+    }
+
+    protected void chkBoxShowProjectsWithoutLeaders_CheckedChanged(object sender, EventArgs e)
+    {
+        var selectedVolunteerCampusId = Int32.Parse(this.ddlVolunteerCampuses.SelectedItem.Value);
+        var selectedProjectCampusId = Int32.Parse(this.ddlProjectCampuses.SelectedItem.Value);
+
+        loadGroupData(selectedVolunteerCampusId, selectedProjectCampusId, this.chkBoxShowProjects.Checked, this.chkBoxShowLeadaers.Checked, this.chkBoxShowProjectsWithoutLeaders.Checked);
     }
 }

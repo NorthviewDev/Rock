@@ -41,7 +41,7 @@ namespace us.northviewchurch.Model.GBB
             {
                 ID = RockMember.Id,
                 FirstName = RockMember.Person.FirstName,
-                LastName = RockMember.Person.FirstName,
+                LastName = RockMember.Person.LastName,
                 Email = RockMember.Person.Email,
                 Active = RockMember.GroupMemberStatus == GroupMemberStatus.Active,
                 MaxRequests = maxReqsInt,

@@ -27,6 +27,8 @@ namespace us.northviewchurch.Model.GBB
 
         [DataMember]
         public virtual PrayerRequest RockPrayerRequest { get; set; }
+
+        public virtual bool Active { get { return this.RockPrayerRequest != null ? this.RockPrayerRequest.IsActive ?? false : false; } }
         
     }
 

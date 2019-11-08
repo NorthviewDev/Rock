@@ -1,11 +1,10 @@
-﻿using Rock.Data;
+﻿using Rock;
+using Rock.Data;
 using Rock.Web.UI;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using us.northviewchurch.Model.GBB;
@@ -19,10 +18,15 @@ public partial class Plugins_us_northviewchurch_Tutorial_GBBObjectTest : RockBlo
     {
         if (!Page.IsPostBack)
         {
+            var partnerId = -1;
 
-            var mappings = new GBBPrayerRequestMappingService(new RockContext()).Queryable("PrayerBatch,RockPrayerRequest").ToList();
+            var partnerIdStr = PageParameter("partnerId").ToStringSafe();
 
-            var gbbRequests = mappings.Select(x=> GBBPrayerRequest.CreateFromRockObjects(x)).ToList();
+            Int32.TryParse(partnerIdStr, out partnerId);
+
+            var mappings = new GBBPrayerRequestMappingService(new RockContext()).Queryable("PrayerBatch,RockPrayerRequest").Where(x=>x.PrayerPartnerId == partnerId).ToList();
+
+            var gbbRequests = mappings.Where(x=> x.Active).Select(x=> GBBPrayerRequest.CreateFromRockObjects(x)).ToList();
 
             var vms = gbbRequests.Select(x => GBBPrayerRequestVM.CreateFromGBBPrayerRequest(x)).ToList();
             
@@ -34,6 +38,46 @@ public partial class Plugins_us_northviewchurch_Tutorial_GBBObjectTest : RockBlo
             grdPartners.DataSource = partners;
             grdPartners.DataBind();
 
+        }
+    }
+
+    protected void grdRequests_RowCommand(object sender, GridViewCommandEventArgs e)
+    {
+        if (e.CommandName == "Complete")
+        {
+            btnComplete_Clicked(sender, e);
+        }
+    }
+
+    protected void btnComplete_Clicked(object sender, GridViewCommandEventArgs e)
+    {
+        int id = 0;
+
+        var ctx = new RockContext();
+
+        int index = Convert.ToInt32(e.CommandArgument);
+
+        id = Convert.ToInt32(grdRequests.DataKeys[index].Value);
+
+        var mapping = new GBBPrayerRequestMappingService(ctx).Queryable("PrayerBatch,RockPrayerRequest").Where(x=>x.Id == id).FirstOrDefault();
+
+        if(mapping != null)
+        {
+            mapping.RockPrayerRequest.IsActive = false;
+
+            ctx.SaveChanges();
+
+            var batch = new PrayerBatchService(ctx).Queryable().Where(x => x.Id == mapping.PrayerBatchId).FirstOrDefault();
+
+            if (batch != null)
+            {
+                if(!batch.PrayerRequestMappings.Any(x=> x.Active))
+                {
+                    batch.Active = false;
+
+                    ctx.SaveChanges();
+                }               
+            }
         }
     }
 
