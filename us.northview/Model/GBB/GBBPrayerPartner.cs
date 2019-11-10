@@ -17,10 +17,10 @@ namespace us.northviewchurch.Model.GBB
 
         public static GBBPrayerPartner CreateFromRockGroupMember(GroupMember RockMember, Rock.Data.Service<AttributeValue> AttrValueSvc, int MaxRequestsAttrVal, int TotalRequestsAttrVal )
         {
-            var projAttrs = AttrValueSvc.Queryable().Where(t => t.EntityId == RockMember.Id && (t.AttributeId == MaxRequestsAttrVal || t.AttributeId == TotalRequestsAttrVal)).ToList();
+            var partnerAttrs = AttrValueSvc.Queryable().Where(t => t.EntityId == RockMember.Id && (t.AttributeId == MaxRequestsAttrVal || t.AttributeId == TotalRequestsAttrVal)).ToList();
 
-            var maxReqs = projAttrs.FirstOrDefault(x => x.AttributeId == MaxRequestsAttrVal);
-            var totReqs = projAttrs.FirstOrDefault(x => x.AttributeId == TotalRequestsAttrVal);
+            var maxReqs = partnerAttrs.FirstOrDefault(x => x.AttributeId == MaxRequestsAttrVal);
+            var totReqs = partnerAttrs.FirstOrDefault(x => x.AttributeId == TotalRequestsAttrVal);
 
             var maxReqsInt = 0;
 

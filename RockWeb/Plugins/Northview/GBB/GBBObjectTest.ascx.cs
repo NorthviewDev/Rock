@@ -33,10 +33,10 @@ public partial class Plugins_us_northviewchurch_Tutorial_GBBObjectTest : RockBlo
             grdRequests.DataSource = vms;
             grdRequests.DataBind();
 
-            var partners = new PrayerPartnerService(new RockContext()).GetPrayerPartners();
+            //var partners = new PrayerPartnerService(new RockContext()).GetPrayerPartners();
 
-            grdPartners.DataSource = partners;
-            grdPartners.DataBind();
+            //grdPartners.DataSource = partners;
+            //grdPartners.DataBind();
 
         }
     }

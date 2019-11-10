@@ -84,6 +84,28 @@ namespace us.northviewchurch.Model.GBB
             return partner;
         }
 
+        public virtual bool Save(GBBPrayerPartner partner)
+        {
+            var success = false;
+
+            var attrSvc = new AttributeService((RockContext)this.Context);
+            var attrValSvc = new AttributeValueService((RockContext)this.Context);
+
+            var groupMember = GetMembersForPartnerGroup(new GroupMemberService((RockContext)this.Context), PersonId: partner.ID).FirstOrDefault();
+
+            var partnerAttrs = attrValSvc.Queryable().Where(t => t.EntityId == partner.ID && (t.AttributeId == MaxRequestsAttributeId || t.AttributeId == TotalRequestsAttributeId)).ToList();
+
+            var maxReqs = partnerAttrs.FirstOrDefault(x => x.AttributeId == MaxRequestsAttributeId);
+            var totReqs = partnerAttrs.FirstOrDefault(x => x.AttributeId == TotalRequestsAttributeId);
+
+            maxReqs.Value = partner.MaxRequests.ToString();
+            totReqs.Value = partner.TotalRequests.ToString();
+
+            ((RockContext)this.Context).SaveChanges();
+
+            return success;
+        }
+
         protected virtual List<GroupMember> GetMembersForPartnerGroup(Service<GroupMember> GroupService, int? GroupMemberId = null, int? PersonId = null)
         {
             var members = new List<GroupMember>();

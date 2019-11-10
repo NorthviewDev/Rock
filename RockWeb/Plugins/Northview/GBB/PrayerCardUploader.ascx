@@ -75,6 +75,6 @@
     </div>
     <input type="hidden" id="btnUpload" onclick="uploadRequests()" />
 </div>
-<div class="form-group">
+<%--<div class="form-group">
     <asp:Button runat="server" ID="btnAssign" OnClick="btnAssign_Click" />
-</div>
+</div>--%>

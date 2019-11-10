@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Web.UI.HtmlControls;
 using System.ComponentModel;
 using Rock.Model;
@@ -43,8 +44,21 @@ public partial class Plugins_northview_GBB_PrayerCardUploader : Rock.Web.UI.Rock
 
         var partners = prayerPartnerSvc.GetPrayerPartners();
 
+        var prayerMappingSvc = new GBBPrayerRequestMappingService(ctx);
+
         var batch = batchSvc.GetActiveBatch();
 
         GBBPrayerRequestAssigner.AssignRequests(batch, partners);
+
+        var assignedRequests = batch.PrayerRequestMappings.Where(x => x.PrayerPartnerId.HasValue);
+
+        foreach(var mapping in assignedRequests)
+        {
+            var dbObj = prayerMappingSvc.Get(mapping.Id);
+
+            dbObj.PrayerPartnerId = mapping.PrayerPartnerId;
+
+            ctx.SaveChanges();
+        }
     }
 }
